@@ -210,7 +210,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
               dispersion={dispersion}
               cyber={focus}
               pulse={active}
-              className="font-display text-[clamp(3.25rem,13vw,13rem)] font-black leading-[0.88]"
+              className="font-display text-[clamp(2.5rem,min(9.5vw,13svh),9rem)] font-black leading-[0.88]"
               style={{ "--mx": mx, "--my": my } as unknown as CSSProperties}
             />
           </motion.div>

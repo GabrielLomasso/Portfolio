@@ -93,7 +93,6 @@ export function GlassText({ lines, dispersion, cyber, pulse, className, style }:
 
       <span className="sr-only">{lines.join(" ")}</span>
       <span aria-hidden className="glass-layer glass-glow">{content}</span>
-      <span aria-hidden className="glass-layer glass-shadow">{content}</span>
       <motion.span
         aria-hidden
         className="glass-layer glass-disperse"
