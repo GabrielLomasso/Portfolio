@@ -27,12 +27,9 @@ export function Pyramid3D({ geometry, outro }: Pyramid3DProps) {
   const rotateX = useTransform(local, [0, 1], [0, 22]);
   const rotateZ = useTransform(local, [0, 1], [0, -16]);
 
-  const faces = [
-    { turn: 0, shade: 0.07 },
-    { turn: 90, shade: 0.12 },
-    { turn: 180, shade: 0.05 },
-    { turn: 270, shade: 0.1 },
-  ];
+  // Vidro transparente como o triângulo do hero: as faces se sobrepõem, então o
+  // preenchimento é quase nada (somado, ficaria cinza); quem desenha a forma são as arestas.
+  const faces = [0, 90, 180, 270];
 
   return (
     <motion.div
@@ -56,7 +53,7 @@ export function Pyramid3D({ geometry, outro }: Pyramid3DProps) {
     >
       {/* A profundidade fica num contêiner interno para escalar no espaço do objeto, antes dos giros */}
       <motion.div className="absolute inset-0" style={{ scaleZ: depth, transformStyle: "preserve-3d", originX: 0.5, originY: 1 }}>
-        {faces.map(({ turn, shade }) => (
+        {faces.map((turn) => (
           <div
             key={turn}
             className="absolute left-0"
@@ -70,9 +67,15 @@ export function Pyramid3D({ geometry, outro }: Pyramid3DProps) {
             }}
           >
             <svg width={side} height={slant} viewBox={`0 0 ${side} ${slant}`} className="absolute inset-0 overflow-visible">
+              <defs>
+                <linearGradient id={`pyramid-glass-${turn}`} x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#fff" stopOpacity="0.025" />
+                  <stop offset="100%" stopColor="#fff" stopOpacity="0" />
+                </linearGradient>
+              </defs>
               <polygon
                 points={`${side / 2},0 ${side},${slant} 0,${slant}`}
-                fill={`rgb(255 255 255 / ${shade})`}
+                fill={`url(#pyramid-glass-${turn})`}
                 stroke="rgb(255 255 255 / 0.9)"
                 strokeWidth={1.5}
                 strokeLinejoin="round"
@@ -89,7 +92,6 @@ export function Pyramid3D({ geometry, outro }: Pyramid3DProps) {
             width: side,
             height: side,
             top: tall - side / 2,
-            background: "rgb(255 255 255 / 0.04)",
             transform: "rotateX(90deg)",
           }}
         />
