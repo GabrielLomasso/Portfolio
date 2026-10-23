@@ -92,6 +92,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
   const nameScale = useTransform(progress, [0, 1], [1, 1.06]);
   const introOpacity = useTransform(progress, [0, TUNNEL_FROM * 0.8], [1, 0]);
   const glowOpacity = useTransform(focus, [0, 1], [0, 0.55]);
+  const scanOpacity = useTransform(focus, [0, 1], [0, 0.7]);
 
   const [active, setActive] = useState(-1);
   useMotionValueEvent(progress, "change", (p) => {
@@ -152,8 +153,36 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
           pointer={pointer}
           stage={stage}
           getKey={(p) => p.slug}
-          renderItem={(p) => <ProjectCard project={p} />}
+          renderItem={(p, i) => <ProjectCard project={p} active={i === active} />}
         />
+
+        {/* Luz cibernética: scanlines no túnel e, a cada troca de projeto, flash + barra de varredura */}
+        <motion.div
+          aria-hidden
+          className="scanlines pointer-events-none absolute inset-0 z-10"
+          style={{ opacity: scanOpacity }}
+        />
+        {active >= 0 && !reduce && (
+          <motion.div key={active} aria-hidden className="pointer-events-none absolute inset-0 z-10">
+            <motion.div
+              className="absolute inset-0"
+              style={{ background: `radial-gradient(70% 55% at 50% 50%, oklch(0.7 0.2 ${projects[active].hue} / 0.35), transparent 75%)` }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 1, 0.2, 0.8, 0] }}
+              transition={{ duration: 0.7, ease: "linear" }}
+            />
+            <motion.div
+              className="absolute inset-x-0 h-px"
+              style={{
+                background: `oklch(0.85 0.18 ${projects[active].hue})`,
+                boxShadow: `0 0 18px 3px oklch(0.75 0.2 ${projects[active].hue} / 0.8)`,
+              }}
+              initial={{ top: "0%", opacity: 0 }}
+              animate={{ top: ["0%", "100%"], opacity: [0, 1, 1, 0] }}
+              transition={{ duration: 0.75, ease: [0.4, 0, 0.6, 1] }}
+            />
+          </motion.div>
+        )}
 
         {/* Nome + legenda: fica por cima do túnel, como uma lente */}
         <div className="pointer-events-none relative z-20 flex flex-col items-center px-4 text-center">
@@ -179,7 +208,9 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
             <GlassText
               lines={["GABRIEL", "FAJARDO"]}
               dispersion={dispersion}
-              className="font-display text-[clamp(2.75rem,10vw,10rem)] font-extrabold leading-[0.92] tracking-[-0.02em]"
+              cyber={focus}
+              pulse={active}
+              className="font-display text-[clamp(2.5rem,9.5vw,9.5rem)] font-black leading-[0.98] tracking-[0.02em]"
               style={{ "--mx": mx, "--my": my } as unknown as CSSProperties}
             />
           </motion.div>

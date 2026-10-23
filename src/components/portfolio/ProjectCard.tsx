@@ -154,14 +154,24 @@ const MOCKS: Record<PreviewVariant, () => React.JSX.Element> = {
   grid: MockGrid,
 };
 
-export function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({ project, active = false }: { project: Project; active?: boolean }) {
   const Mock = MOCKS[project.preview];
 
   return (
     <article
-      className="group rounded-xl bg-ink shadow-2xl shadow-black ring-1 ring-white/10 transition-[box-shadow,transform] duration-500 hover:scale-[1.03]"
+      className="group relative rounded-xl bg-ink shadow-2xl shadow-black ring-1 ring-white/10 transition-[box-shadow,transform] duration-500 hover:scale-[1.03]"
       style={{ "--ph": project.hue } as CSSProperties}
     >
+      {/* Moldura de neon do projeto em foco; montar o elemento reinicia o acendimento */}
+      {active && (
+        <div
+          aria-hidden
+          className="neon-on pointer-events-none absolute -inset-px z-10 rounded-xl"
+          style={{
+            boxShadow: `0 0 0 1px ${tint(0.82, 0.17)}, 0 0 22px 2px ${tint(0.7, 0.2, 0.55)}, inset 0 0 18px ${tint(0.7, 0.2, 0.25)}`,
+          }}
+        />
+      )}
       <div className="flex h-6 items-center gap-1.5 border-b border-white/5 px-2.5">
         <span className="size-1.5 rounded-full bg-white/20" />
         <span className="size-1.5 rounded-full bg-white/20" />

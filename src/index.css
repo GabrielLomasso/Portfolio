@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: "Unbounded", system-ui, sans-serif;
+  --font-display: "Orbitron", system-ui, sans-serif;
   --font-sans: "Hanken Grotesk", system-ui, sans-serif;
   --font-mono: "Martian Mono", ui-monospace, monospace;
 
@@ -38,6 +38,32 @@
  * corpo refratado, reflexo e borda. A cor vem de --h (matiz) e --c (croma),
  * que o hero atualiza conforme o projeto em foco.
  */
+/* Tubo de neon com mau contato: quase sempre aceso, com quedas curtas e irregulares */
+@keyframes neon-hum {
+  0%, 9%, 12%, 41%, 43.5%, 46%, 77%, 100% { opacity: 1; }
+  10% { opacity: 0.4; }
+  42% { opacity: 0.25; }
+  44.5% { opacity: 0.7; }
+  78% { opacity: 0.5; }
+}
+
+@keyframes scan-move {
+  from { background-position: 0 100%, 0 0; }
+  to { background-position: 0 -100%, 0 0; }
+}
+
+/* Acendimento de lâmpada fluorescente */
+@keyframes flicker-on {
+  0% { opacity: 0; }
+  8% { opacity: 1; }
+  14% { opacity: 0.2; }
+  22% { opacity: 0.9; }
+  28% { opacity: 0.1; }
+  40% { opacity: 1; }
+  48% { opacity: 0.6; }
+  56%, 100% { opacity: 1; }
+}
+
 @layer components {
   .glass-text {
     display: grid;
@@ -94,8 +120,59 @@
     opacity: 0.4;
   }
 
+  /* Sem croma é borda de vidro branca; com projeto em foco vira tubo de neon na cor dele */
   .glass-layer.glass-edge {
-    color: rgb(255 255 255 / 0.45);
+    color: oklch(0.88 calc(var(--c, 0) * 0.9) var(--h, 0) / calc(0.45 + var(--c, 0) * 2));
+  }
+
+  /* Camadas cibernéticas: só aparecem quando há projeto em foco */
+  .glass-layer.glass-scan {
+    background-image:
+      linear-gradient(180deg, transparent 0%, oklch(0.9 var(--c, 0) var(--h, 0) / 0.55) 50%, transparent 56%),
+      repeating-linear-gradient(180deg, oklch(0.9 var(--c, 0) var(--h, 0) / 0.22) 0 1px, transparent 1px 4px);
+    background-size: 100% 300%, 100% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    mix-blend-mode: screen;
+    animation: scan-move 3.2s linear infinite;
+  }
+
+  .glass-layer.glass-sweep {
+    background-image: linear-gradient(100deg, transparent 38%, rgb(255 255 255 / 0.95) 50%, transparent 62%);
+    background-size: 250% 100%;
+    background-position: 130% 0;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    mix-blend-mode: screen;
+  }
+
+  .glass-layer.glass-slice {
+    color: oklch(0.82 0.2 var(--h, 0));
+    opacity: 0;
+    mix-blend-mode: screen;
+  }
+
+  .glass-text[data-cyber="on"] .glass-glow,
+  .glass-text[data-cyber="on"] .glass-edge {
+    animation: neon-hum 4.7s steps(1) infinite;
+  }
+
+  .neon-on {
+    animation: flicker-on 0.7s steps(1) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glass-layer.glass-scan,
+    .glass-text[data-cyber="on"] .glass-glow,
+    .glass-text[data-cyber="on"] .glass-edge,
+    .neon-on {
+      animation: none;
+    }
+  }
+
+  .scanlines {
+    background-image: repeating-linear-gradient(180deg, rgb(255 255 255 / 0.05) 0 1px, transparent 1px 3px);
   }
 
   .grain {
