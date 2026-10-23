@@ -15,36 +15,29 @@ export interface Project {
   /** Screenshot em /public/projects (opcional). Sem ela, o card mostra o mock. */
   image?: string;
   href?: string;
+  /** Fora do site por enquanto; os dados ficam aqui para voltar depois. */
+  hidden?: boolean;
 }
 
 // TODO: trocar os mocks por screenshots reais (public/projects/<slug>.webp) e adicionar links
 export const PROJECTS: Project[] = [
-  {
-    slug: "ascend",
-    name: "ASCEND",
-    kind: "PWA",
-    description: "Ficha de treino e dieta no celular, com base de alimentos da TACO e do Open Food Facts.",
-    stack: ["React", "TanStack Start", "Lovable Cloud"],
-    hue: 22,
-    preview: "app",
-  },
   {
     slug: "thaylor",
     name: "Thaylor Personal",
     kind: "Landing page",
     description: "Página de captação para personal trainer em Belo Horizonte, feita para agendar a primeira aula.",
     stack: ["React", "TanStack Start", "Tailwind"],
-    hue: 52,
+    hue: 22,
     preview: "landing",
   },
   {
-    slug: "storix",
-    name: "Storix",
-    kind: "Sistema",
-    description: "Controle de estoque de obra para várias empresas: entradas, saídas e saldo por obra, no lugar do caderno.",
-    stack: ["React", "Supabase", "shadcn/ui"],
+    slug: "kitnets-bh",
+    name: "Kitnets BH",
+    kind: "Site",
+    description: "Site de aluguel de kitnets em Santa Efigênia, com lista de espera e API própria.",
+    stack: ["Next.js", "Tailwind", "Zod"],
     hue: 88,
-    preview: "table",
+    preview: "landing",
   },
   {
     slug: "olkos",
@@ -56,22 +49,13 @@ export const PROJECTS: Project[] = [
     preview: "dashboard",
   },
   {
-    slug: "kitnets-bh",
-    name: "Kitnets BH",
-    kind: "Site",
-    description: "Site de aluguel de kitnets em Santa Efigênia, com lista de espera e API própria.",
-    stack: ["Next.js", "Tailwind", "Zod"],
+    slug: "ascend",
+    name: "ASCEND",
+    kind: "PWA",
+    description: "Ficha de treino e dieta no celular, com base de alimentos da TACO e do Open Food Facts.",
+    stack: ["React", "TanStack Start", "Lovable Cloud"],
     hue: 185,
-    preview: "landing",
-  },
-  {
-    slug: "lazinho",
-    name: "Lazinho Automóveis",
-    kind: "Site",
-    description: "Catálogo de seminovos com contato direto pelo WhatsApp, sem depender de portal de anúncios.",
-    stack: ["React", "Supabase", "Tailwind"],
-    hue: 225,
-    preview: "catalog",
+    preview: "app",
   },
   {
     slug: "scala-studio",
@@ -83,6 +67,25 @@ export const PROJECTS: Project[] = [
     preview: "table",
   },
   {
+    slug: "storix",
+    name: "Storix",
+    kind: "Sistema",
+    description: "Controle de estoque de obra para várias empresas: entradas, saídas e saldo por obra, no lugar do caderno.",
+    stack: ["React", "Supabase", "shadcn/ui"],
+    hue: 298,
+    preview: "table",
+  },
+  {
+    slug: "lazinho",
+    name: "Lazinho Automóveis",
+    kind: "Site",
+    description: "Catálogo de seminovos com contato direto pelo WhatsApp, sem depender de portal de anúncios.",
+    stack: ["React", "Supabase", "Tailwind"],
+    hue: 225,
+    preview: "catalog",
+    hidden: true,
+  },
+  {
     slug: "meep-hotel",
     name: "MEEP Hotel",
     kind: "Sistema",
@@ -90,6 +93,7 @@ export const PROJECTS: Project[] = [
     stack: ["React", "Supabase", "shadcn/ui"],
     hue: 298,
     preview: "grid",
+    hidden: true,
   },
   {
     slug: "dra-larissa",
@@ -99,5 +103,6 @@ export const PROJECTS: Project[] = [
     stack: ["React", "Tailwind v4"],
     hue: 338,
     preview: "landing",
+    hidden: true,
   },
 ];
