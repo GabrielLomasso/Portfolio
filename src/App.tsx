@@ -1,4 +1,5 @@
 import { SpectrumHero } from "@/components/portfolio/SpectrumHero";
+import { BeforeAfter } from "@/components/sections/BeforeAfter";
 import { CommandPalette } from "@/components/sections/CommandPalette";
 import { Contact } from "@/components/sections/Contact";
 import { Lab } from "@/components/sections/Lab";
@@ -21,6 +22,7 @@ export default function App() {
       <Manifesto />
       <SkillSpectrum />
       <Process />
+      <BeforeAfter />
       <Lab />
       <SystemPanel />
       <Tracklist />
