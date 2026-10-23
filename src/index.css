@@ -3,7 +3,7 @@
 /* Fonte própria do nome, gerada por scripts/build-font.mjs (só as letras de GABRIEL FAJARDO; o resto cai na Tektur) */
 @font-face {
   font-family: "Fajardo Cyber";
-  src: url("/fonts/fajardo-cyber.otf?v=3") format("opentype");
+  src: url("/fonts/fajardo-cyber.otf?v=5") format("opentype");
   font-weight: 900;
   font-display: block;
 }
