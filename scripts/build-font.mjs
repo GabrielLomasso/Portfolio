@@ -3,7 +3,7 @@
 // passando da linha de base e barras que varrem para o lado. Não é cópia de
 // nenhum logo: as letras são desenhadas do zero.
 //
-// Rodar: npm run build:font
+// Rodar: npm run build:font (e subir o ?v= da URL em src/index.css e index.html, senão o navegador usa a versão em cache)
 //
 // Cada glifo é desenhado em pé, num grid de 1000 unidades por em (altura de
 // maiúscula 700), como uma lista de polígonos. Polígonos podem se sobrepor
@@ -15,9 +15,11 @@ import opentype from "opentype.js";
 import polygonClipping from "polygon-clipping";
 
 const H = 700; // altura de maiúscula
-const V = 145; // haste vertical
-const B = 135; // barra horizontal
+const V = 88; // haste vertical (antes de esticar)
+const B = 125; // barra horizontal (antes de achatar)
 const SLANT = 0.24; // ~13°
+const SCALE_X = 1.32; // estica na horizontal...
+const SCALE_Y = 0.82; // ...e achata na vertical (altura de maiúscula final ~574)
 const CUT_GAP = 22; // vão do corte horizontal
 const CUT_SHIFT = -14; // a parte de baixo escorrega para a esquerda
 const SIDE = 20; // espaço lateral de cada letra
@@ -149,8 +151,8 @@ function buildGlyph(char, spec) {
   for (const poly of [...lower, ...upper]) {
     for (const ring of poly) {
       ring.slice(0, -1).forEach(([x, y], i) => {
-        const px = Math.round(x + SIDE + y * SLANT);
-        const py = Math.round(y);
+        const px = Math.round(x * SCALE_X + SIDE + y * SCALE_Y * SLANT);
+        const py = Math.round(y * SCALE_Y);
         if (i === 0) glyphPath.moveTo(px, py);
         else glyphPath.lineTo(px, py);
       });
@@ -161,7 +163,7 @@ function buildGlyph(char, spec) {
   return new opentype.Glyph({
     name: char,
     unicode: char.charCodeAt(0),
-    advanceWidth: spec.w + SIDE * 2,
+    advanceWidth: Math.round(spec.w * SCALE_X) + SIDE * 2,
     path: glyphPath,
   });
 }
