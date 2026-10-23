@@ -151,7 +151,7 @@ export function ExploreOverlay({ initialMode, geometry, projects, onClose }: Exp
     setSelected(null);
     setPhase("leaving");
     // Volta para o meio e apaga de novo; ao apagar, a tela cheia fecha e os botões voltam
-    animate(tx, 0, { duration: reduce ? 0 : 0.9, ease: EASE }).then(() => setLit(false));
+    animate(tx, 0, { duration: reduce ? 0 : 0.6, ease: EASE }).then(() => setLit(false));
   };
 
   const back = () => (selected !== null ? setSelected(null) : close());
