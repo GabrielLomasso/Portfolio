@@ -20,7 +20,9 @@ import {
   useTunnelStage,
 } from "@/components/ui/perspective-tunnel";
 import { Pyramid3D } from "./Pyramid3D";
-import { INTRO, PrismBeam, prismShape, PYRAMID_PERSPECTIVE, type PrismGeometry } from "./PrismBeam";
+import { INTRO, PrismBeam, prismShape, PRISM_3D_FROM, type PrismGeometry } from "./PrismBeam";
+import { PYRAMID } from "./pyramid-config";
+import { PYRAMID_TUNING, PyramidTuner } from "./PyramidTuner";
 import { ProjectCard } from "./ProjectCard";
 import { SpectrumRail } from "./SpectrumRail";
 
@@ -127,6 +129,16 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
     window.scrollTo({ top: section.offsetTop + peaks[index] * scrollable, behavior: reduce ? "auto" : "smooth" });
   };
 
+  // Painel de ajuste da pirâmide (?piramide no dev): rola até um momento do giro
+  const [pyramid, setPyramid] = useState(PYRAMID);
+  const previewPyramid = (moment: number) => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const o = PRISM_3D_FROM + moment * (1 - PRISM_3D_FROM);
+    const p = OUTRO_FROM + o * (1 - OUTRO_FROM);
+    window.scrollTo({ top: section.offsetTop + p * (section.offsetHeight - window.innerHeight) });
+  };
+
   const sectionHeight = `${100 + VH_PER_PROJECT / step}svh`;
   const current = active >= 0 ? projects[active] : null;
   const shape = geometry ? prismShape(geometry) : null;
@@ -166,12 +178,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
         {geometry && (
           <PrismBeam geometry={geometry} currentHue={hue} focus={focus} animateIn={animateIn} pulse={active} outro={outro} />
         )}
-        {/* Perspectiva própria, mais distante que a do túnel: menos distorção, a pirâmide não "incha" ao girar */}
-        {geometry && (
-          <div className="pointer-events-none absolute inset-0" style={{ perspective: `${PYRAMID_PERSPECTIVE}px` }}>
-            <Pyramid3D geometry={geometry} outro={outro} />
-          </div>
-        )}
+        {geometry && <Pyramid3D geometry={geometry} outro={outro} config={pyramid} />}
 
         <motion.div style={{ opacity: chromeOpacity }} className="pointer-events-none absolute inset-x-0 top-6 z-30 sm:top-8">
           <motion.p
@@ -316,6 +323,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
 
         <div aria-hidden className="grain pointer-events-none absolute inset-0 z-40 opacity-[0.06] mix-blend-overlay" />
       </motion.div>
+      {PYRAMID_TUNING && <PyramidTuner config={pyramid} onChange={setPyramid} onPreview={previewPyramid} />}
     </section>
   );
 }

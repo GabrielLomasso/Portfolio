@@ -1,5 +1,6 @@
 import { motion, useAnimate, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef } from "react";
+import { PYRAMID } from "./pyramid-config";
 
 // Faixas do espectro que saem do prisma, como na capa do Dark Side of the Moon (vermelho em cima).
 const BANDS = [25, 55, 95, 145, 200, 255, 300];
@@ -17,9 +18,12 @@ export const INTRO = {
  * Encerramento do hero (progresso 0–1 depois da última cor): a luz se apaga da esquerda
  * para a direita, o arco-íris some e, a partir deste ponto, o triângulo vira a pirâmide 3D.
  */
-export const PRISM_3D_FROM = 0.45;
-/** Duração do fade entre o triângulo plano e a pirâmide (em unidades do encerramento). */
-export const PRISM_FADE = 0.06;
+export const PRISM_3D_FROM = PYRAMID.inicio;
+/**
+ * Troca do triângulo plano pela pirâmide (em unidades do encerramento). De frente os dois têm
+ * o mesmo contorno, então a troca é quase instantânea e a pirâmide só começa a girar depois dela.
+ */
+export const PRISM_FADE = 0.01;
 
 /*
  * Ótica do apagar da luz. Quando a fonte desliga, a luz já emitida continua viajando:
@@ -63,9 +67,6 @@ export function prismShape({ width: W, height: H, cx, cy, isMobile }: PrismGeome
     right: { x: cx + side / 2, y: cy + tall / 2 },
   };
 }
-
-/** Perspectiva própria da pirâmide 3D (mais distante que a do túnel: menos distorção). */
-export const PYRAMID_PERSPECTIVE = 2600;
 
 const lerp = (a: Point, b: Point, t: number): Point => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
 const pts = (...points: Point[]) => points.map((p) => `${p.x},${p.y}`).join(" ");
