@@ -24,5 +24,6 @@ Abre em http://localhost:5186.
 - `src/components/ui/glass-text.tsx` — texto de vidro (camadas em `src/index.css`, classes `.glass-*`)
 - `src/components/ui/perspective-tunnel.tsx` — túnel 3D, adaptado do *perspective-tunnel-hero* do 21st.dev para usar o scroll da página
 - `src/components/portfolio/` — hero, feixe do prisma, cards e trilho de projetos
+- `scripts/build-font.mjs` — gera a fonte própria do nome (`public/fonts/fajardo-cyber.otf`), desenhada letra a letra em polígonos; rode `npm run build:font` depois de mexer. Por enquanto só tem as letras de GABRIEL FAJARDO; o resto cai na Tektur
 
 Screenshots reais dos projetos vão em `public/projects/<slug>.webp`; enquanto não existem, cada card mostra um mock da interface.

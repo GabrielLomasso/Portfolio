@@ -1,7 +1,15 @@
 @import "tailwindcss";
 
+/* Fonte própria do nome, gerada por scripts/build-font.mjs (só as letras de GABRIEL FAJARDO; o resto cai na Tektur) */
+@font-face {
+  font-family: "Fajardo Cyber";
+  src: url("/fonts/fajardo-cyber.otf") format("opentype");
+  font-weight: 900;
+  font-display: block;
+}
+
 @theme {
-  --font-display: "Tektur", system-ui, sans-serif;
+  --font-display: "Fajardo Cyber", "Tektur", system-ui, sans-serif;
   --font-sans: "Hanken Grotesk", system-ui, sans-serif;
   --font-mono: "Martian Mono", ui-monospace, monospace;
 
@@ -99,7 +107,7 @@
       linear-gradient(173deg, transparent 22%, rgb(255 255 255 / 0.5) 27%, rgb(255 255 255 / 0.08) 34%, transparent 40%),
       linear-gradient(173deg, transparent 63%, rgb(255 255 255 / 0.32) 70%, transparent 78%),
       linear-gradient(100deg, transparent 55%, oklch(0.68 0.22 25 / 0.32) 64%, oklch(0.84 0.17 90 / 0.3) 70%, oklch(0.76 0.19 150 / 0.3) 76%, oklch(0.68 0.17 245 / 0.32) 82%, oklch(0.6 0.22 300 / 0.32) 88%, transparent 96%),
-      linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.01) 55%, rgb(255 255 255 / 0.04));
+      linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.04) 55%, rgb(255 255 255 / 0.08));
     -webkit-background-clip: text;
     background-clip: text;
   }
