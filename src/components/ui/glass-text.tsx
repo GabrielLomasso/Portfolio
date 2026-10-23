@@ -1,5 +1,5 @@
-import { motion, useAnimate, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
-import { useEffect, useId, type CSSProperties } from "react";
+import { motion, useAnimate, useReducedMotion, useTransform, type MotionStyle, type MotionValue } from "framer-motion";
+import { useEffect, useId } from "react";
 import { cn } from "@/lib/utils";
 
 interface GlassTextProps {
@@ -11,7 +11,7 @@ interface GlassTextProps {
   /** Cada valor novo (>= 0) dispara um glitch com varredura de luz. */
   pulse?: number;
   className?: string;
-  style?: CSSProperties;
+  style?: MotionStyle;
 }
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min);
@@ -71,7 +71,8 @@ export function GlassText({ lines, dispersion, cyber, pulse, className, style }:
   ));
 
   return (
-    <h1 ref={scope} className={cn("glass-text", className)} style={style} data-cyber={pulse !== undefined && pulse >= 0 ? "on" : "off"}>
+    // motion.h1 (e não h1) para os MotionValues em style (--mx/--my) virarem valores CSS de verdade
+    <motion.h1 ref={scope} className={cn("glass-text", className)} style={style} data-cyber={pulse !== undefined && pulse >= 0 ? "on" : "off"}>
       <svg aria-hidden width="0" height="0" className="absolute">
         <defs>
           {/* Anel de ~1px: o glifo menos ele mesmo erodido */}
@@ -92,6 +93,7 @@ export function GlassText({ lines, dispersion, cyber, pulse, className, style }:
 
       <span className="sr-only">{lines.join(" ")}</span>
       <span aria-hidden className="glass-layer glass-glow">{content}</span>
+      <span aria-hidden className="glass-layer glass-shadow">{content}</span>
       <motion.span
         aria-hidden
         className="glass-layer glass-disperse"
@@ -118,6 +120,6 @@ export function GlassText({ lines, dispersion, cyber, pulse, className, style }:
       <span aria-hidden className="glass-layer glass-sweep">{content}</span>
       <span aria-hidden className="glass-layer glass-slice">{content}</span>
       <span aria-hidden className="glass-layer glass-slice">{content}</span>
-    </h1>
+    </motion.h1>
   );
 }

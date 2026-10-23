@@ -1,153 +1,161 @@
 // Gera public/fonts/fajardo-cyber.otf: fonte própria para o nome, inspirada na
-// estética dos títulos cyberpunk (inclinada, pesada, cantos chanfrados e um corte
-// horizontal deslocado em cada letra). Não é cópia de nenhum logo.
+// estética dos títulos cyberpunk — traços de lâmina, pontas afiadas, espinhos
+// passando da linha de base e barras que varrem para o lado. Não é cópia de
+// nenhum logo: as letras são desenhadas do zero.
 //
 // Rodar: npm run build:font
 //
 // Cada glifo é desenhado em pé, num grid de 1000 unidades por em (altura de
-// maiúscula 700). Depois o script aplica o corte com deslocamento e a inclinação.
+// maiúscula 700), como uma lista de polígonos. Polígonos podem se sobrepor
+// (o preenchimento nonzero une tudo); os marcados com hole viram furos.
+// Depois o script aplica o corte com deslocamento e a inclinação.
 import fs from "node:fs";
 import path from "node:path";
 import opentype from "opentype.js";
+import polygonClipping from "polygon-clipping";
 
 const H = 700; // altura de maiúscula
-const T = 180; // haste vertical
-const Th = 150; // barra horizontal
-const SLANT = 0.2; // ~11°
-const CUT_GAP = 26; // vão do corte horizontal
-const CUT_SHIFT = -16; // a parte de baixo escorrega para a esquerda
-const SIDE = 28; // espaço lateral de cada letra
+const V = 145; // haste vertical
+const B = 135; // barra horizontal
+const SLANT = 0.24; // ~13°
+const CUT_GAP = 22; // vão do corte horizontal
+const CUT_SHIFT = -14; // a parte de baixo escorrega para a esquerda
+const SIDE = 20; // espaço lateral de cada letra
+
+const hole = (pts) => ({ hole: true, pts });
 
 /**
- * Letras: largura, contornos (o primeiro é o externo, os demais são furos) e a
- * altura do corte. As alturas variam de letra para letra para o corte formar
- * uma linha quebrada ao longo da palavra.
+ * Letras: largura (avanço, sem contar espinhos), polígonos e a altura do corte.
+ * Os espinhos podem invadir a letra vizinha de propósito.
  */
 const GLYPHS = {
+  G: {
+    w: 640,
+    cut: 455,
+    shapes: (W) => [
+      // barra de cima com lâmina para a esquerda e ponta para a direita
+      [[-90, H], [W + 70, H], [W - 70, H - B], [V, H - B]],
+      [[0, 90], [90, 0], [V, 0], [V, H], [0, H - 40]],
+      [[60, 0], [W - 50, 0], [W, 50], [W, B], [V, B]],
+      [[W - V, B - 1], [W, B - 1], [W, 340], [W - V, 340]],
+      [[W - 300, 225], [W, 225], [W, 340], [W - 230, 340]],
+    ],
+  },
   A: {
-    w: 660,
+    w: 640,
     cut: 500,
-    contours: (W) => [
-      [[0, 0], [T, 0], [T, 240], [W - T, 240], [W - T, 0], [W, 0], [W, H - 30], [W - 30, H], [200, H], [0, H - 200]],
-      [[T, 370], [W - T, 370], [W - T, H - Th], [T + 110, H - Th], [T, H - Th - 110]],
+    shapes: (W) => [
+      [[0, -90], [V, 0], [V, 240], [W - V, 240], [W - V, 20], [W, -50], [W, H - 40], [W - 40, H], [210, H], [0, H - 210]],
+      hole([[V, 365], [W - V, 365], [W - V, H - B], [V + 115, H - B], [V, H - B - 115]]),
     ],
   },
   B: {
-    w: 670,
+    w: 650,
     cut: 560,
-    contours: (W) => [
-      [[0, 0], [W - 110, 0], [W, 110], [W, 300], [W - 55, 355], [W - 40, 370], [W - 40, H - 100], [W - 140, H], [0, H]],
-      [[T, Th], [W - T - 60, Th], [W - T, Th + 60], [W - T, 285], [T, 285]],
-      [[T, 415], [W - 40 - T, 415], [W - 40 - T, H - Th - 60], [W - 40 - T - 60, H - Th], [T, H - Th]],
+    shapes: (W) => [
+      [[0, -70], [V, 0], [W - 110, 0], [W, 110], [W, 300], [W - 55, 355], [W - 40, 370], [W - 40, H - 100], [W - 140, H], [0, H]],
+      hole([[V, B], [W - V - 60, B], [W - V, B + 60], [W - V, 290], [V, 290]]),
+      hole([[V, 410], [W - 40 - V, 410], [W - 40 - V, H - B - 60], [W - 40 - V - 60, H - B], [V, H - B]]),
     ],
   },
   D: {
     w: 640,
     cut: 470,
-    contours: (W) => [
-      [[0, 0], [W - 170, 0], [W, 170], [W, H - 170], [W - 170, H], [0, H]],
-      [[T, Th], [W - T - 80, Th], [W - T, Th + 80], [W - T, H - Th - 80], [W - T - 80, H - Th], [T, H - Th]],
+    shapes: (W) => [
+      [[0, 0], [W - 170, 0], [W, 170], [W, H - 140], [W - 140, H], [-70, H], [0, H - 70]],
+      hole([[V, B], [W - V - 75, B], [W - V, B + 75], [W - V, H - B - 60], [W - V - 60, H - B], [V, H - B]]),
     ],
   },
   E: {
     w: 600,
     cut: 520,
-    contours: (W) => [
-      [[0, 0], [W - 50, 0], [W, Th], [T, Th], [T, 290], [W - 130, 290], [W - 80, 410], [T, 410], [T, H - Th], [W - 50, H - Th], [W, H], [0, H]],
+    shapes: (W) => [
+      // pontas das barras viram setas para fora: a de baixo aponta pela base, a de cima pelo topo
+      [[0, 0], [W, 0], [W - 80, B], [V, B], [V, 290], [W - 70, 290], [W - 140, 410], [V, 410], [V, H - B], [W - 70, H - B], [W + 30, H], [0, H]],
     ],
   },
   F: {
-    w: 580,
+    w: 590,
     cut: 440,
-    contours: (W) => [
-      [[0, 0], [T, 0], [T, 280], [W - 130, 280], [W - 80, 400], [T, 400], [T, H - Th], [W - 50, H - Th], [W, H], [0, H]],
-    ],
-  },
-  G: {
-    w: 660,
-    cut: 455,
-    contours: (W) => [
-      [[60, 0], [W - 110, 0], [W, 110], [W, 380], [W - 260, 380], [W - 260, 270], [W - T, 270], [W - T, Th], [T, Th], [T, H - Th - 60], [T + 60, H - Th], [W, H - Th], [W, H], [150, H], [0, H - 150], [0, 60]],
+    shapes: (W) => [
+      // haste com espinho abaixo da base e barra de cima varrendo para a direita
+      [[0, -90], [V, 0], [V, 280], [W - 120, 280], [W - 180, 400], [V, 400], [V, H - B], [W - 20, H - B], [W + 150, H], [0, H]],
     ],
   },
   I: {
-    w: T,
+    w: V,
     cut: 470,
-    contours: () => [[[0, 0], [T, 0], [T, H], [0, H]]],
+    shapes: () => [[[0, -60], [V, 0], [V, H + 50], [0, H]]],
   },
   J: {
-    w: 560,
+    w: 580,
     cut: 380,
-    contours: (W) => [
-      [[90, 0], [W - 110, 0], [W, 110], [W, H], [W - T, H], [W - T, Th], [T, Th], [T, 230], [0, 230], [0, 90]],
+    shapes: (W) => [
+      // haste da direita desce além da base num espinho; gancho curto à esquerda
+      [[W - V, -60], [W, -210], [W, H + 40], [W - V, H]],
+      [[60, 0], [W - V + 1, 0], [W - V + 1, B], [V, B]],
+      [[0, 60], [60, 0], [V, 0], [V, 230], [0, 260]],
     ],
   },
   L: {
     w: 560,
     cut: 400,
-    contours: (W) => [[[0, 0], [W - 50, 0], [W, Th], [T, Th], [T, H], [0, H]]],
+    shapes: (W) => [
+      // barra de baixo vira uma lâmina longa que passa da letra
+      [[0, 0], [W + 210, 0], [W - 40, B], [V, B], [V, H + 50], [0, H]],
+    ],
   },
   O: {
     w: 660,
     cut: 410,
-    contours: (W) => [
+    shapes: (W) => [
       [[30, 0], [W - 110, 0], [W, 110], [W, H - 30], [W - 30, H], [150, H], [0, H - 150], [0, 30]],
-      [[T, Th], [W - T - 30, Th], [W - T, Th + 30], [W - T, H - Th], [T + 60, H - Th], [T, H - Th - 60]],
+      // espinho no alto à direita (embaixo leria como Q)
+      [[W - 150, H], [W + 70, H + 60], [W, H - 120]],
+      hole([[V, B], [W - V - 30, B], [W - V, B + 30], [W - V, H - B], [V + 60, H - B], [V, H - B - 60]]),
     ],
   },
   R: {
     w: 650,
     cut: 430,
-    contours: (W) => [
-      [[0, 0], [T, 0], [T, 270], [W - T - 90, 270], [W - T, 180], [W - T, 0], [W, 0], [W, 230], [W - 50, 280], [W, 330], [W, H - 110], [W - 110, H], [0, H]],
-      [[T, 400], [W - T, 400], [W - T, H - Th - 60], [W - T - 60, H - Th], [T, H - Th]],
+    shapes: (W) => [
+      [[0, -80], [V, 0], [V, 270], [W - V, 270], [W, 330], [W, H - 110], [W - 110, H], [0, H]],
+      hole([[V, 395], [W - V, 395], [W - V, H - B - 60], [W - V - 60, H - B], [V, H - B]]),
+      // perna em lâmina, afinando até um espinho abaixo da base
+      [[250, 290], [400, 290], [W + 40, -110], [W - 120, 0]],
     ],
   },
 };
 
-const area = (poly) => poly.reduce((sum, [x1, y1], i) => {
-  const [x2, y2] = poly[(i + 1) % poly.length];
-  return sum + x1 * y2 - x2 * y1;
-}, 0) / 2;
-
-/** Sutherland–Hodgman contra um semiplano horizontal. keep(y) diz que lado fica. */
-function clipHorizontal(poly, yc, keepBelow) {
-  const inside = ([, y]) => (keepBelow ? y <= yc : y >= yc);
-  const cross = ([x1, y1], [x2, y2]) => [x1 + ((yc - y1) / (y2 - y1)) * (x2 - x1), yc];
-  const out = [];
-  poly.forEach((cur, i) => {
-    const prev = poly[(i + poly.length - 1) % poly.length];
-    if (inside(cur)) {
-      if (!inside(prev)) out.push(cross(prev, cur));
-      out.push(cur);
-    } else if (inside(prev)) {
-      out.push(cross(prev, cur));
-    }
-  });
-  return out;
-}
+const BIG = 5000;
+const band = (y0, y1) => [[[-BIG, y0], [BIG, y0], [BIG, y1], [-BIG, y1]]];
 
 function buildGlyph(char, spec) {
-  const contours = spec.contours(spec.w).map((poly, i) => {
-    // Externo anti-horário (área positiva), furos horário — o preenchimento nonzero recorta os furos.
-    const positive = area(poly) > 0;
-    return (i === 0) === positive ? poly : [...poly].reverse();
-  });
+  // União dos traços menos os furos, com operações booleanas de verdade: assim o
+  // corte não deixa "pontes" de largura zero que o navegador desenha como fio.
+  const shapes = spec.shapes(spec.w);
+  const fills = shapes.filter((s) => Array.isArray(s)).map((pts) => [pts]);
+  const holes = shapes.filter((s) => !Array.isArray(s)).map((s) => [s.pts]);
+  let glyph = polygonClipping.union(...fills);
+  if (holes.length) glyph = polygonClipping.difference(glyph, ...holes);
 
-  const pieces = contours.flatMap((poly) => [
-    clipHorizontal(poly, spec.cut - CUT_GAP / 2, true).map(([x, y]) => [x + CUT_SHIFT, y]),
-    clipHorizontal(poly, spec.cut + CUT_GAP / 2, false),
-  ]).filter((p) => p.length >= 3 && Math.abs(area(p)) > 1);
+  const lower = polygonClipping
+    .intersection(glyph, band(-BIG, spec.cut - CUT_GAP / 2))
+    .map((poly) => poly.map((ring) => ring.map(([x, y]) => [x + CUT_SHIFT, y])));
+  const upper = polygonClipping.intersection(glyph, band(spec.cut + CUT_GAP / 2, BIG));
 
+  // Anéis externos saem anti-horários e furos horários, que é o que o preenchimento nonzero espera.
   const glyphPath = new opentype.Path();
-  for (const piece of pieces) {
-    piece.forEach(([x, y], i) => {
-      const px = Math.round(x + SIDE + y * SLANT);
-      const py = Math.round(y);
-      if (i === 0) glyphPath.moveTo(px, py);
-      else glyphPath.lineTo(px, py);
-    });
-    glyphPath.close();
+  for (const poly of [...lower, ...upper]) {
+    for (const ring of poly) {
+      ring.slice(0, -1).forEach(([x, y], i) => {
+        const px = Math.round(x + SIDE + y * SLANT);
+        const py = Math.round(y);
+        if (i === 0) glyphPath.moveTo(px, py);
+        else glyphPath.lineTo(px, py);
+      });
+      glyphPath.close();
+    }
   }
 
   return new opentype.Glyph({
@@ -169,7 +177,7 @@ const font = new opentype.Font({
   styleName: "Black",
   unitsPerEm: 1000,
   ascender: 800,
-  descender: -200,
+  descender: -250,
   designer: "Gabriel Fajardo",
   glyphs,
 });
