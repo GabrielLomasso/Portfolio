@@ -16,10 +16,11 @@ export const INTRO = {
 
 /**
  * Encerramento do hero (progresso 0–1 depois da última cor): a luz se apaga da esquerda
- * para a direita, o arco-íris some com o nome e, a partir deste ponto, o triângulo apaga
- * como uma lâmpada velha.
+ * para a direita e, junto com ela, o nome some e o triângulo começa a falhar como uma
+ * lâmpada velha, até apagar logo depois de a luz sair da tela.
  */
-export const LAMP_FROM = 0.5;
+export const LAMP_START = 0.05;
+export const LAMP_END = 0.45;
 
 /*
  * Ótica do apagar da luz. Quando a fonte desliga, a luz já emitida continua viajando:
@@ -29,8 +30,8 @@ export const LAMP_FROM = 0.5;
  * termina de sair primeiro e o violeta por último; fora do vidro, todas as cores voltam
  * à mesma velocidade. A diferença real (~1%) é exagerada aqui, como o próprio leque.
  */
-/** A luz termina de sair da tela antes de o triângulo apagar. */
-const LIGHT_OFF_END = 0.42;
+/** A luz termina de sair da tela pouco antes de o triângulo apagar de vez. */
+export const LIGHT_OFF_END = 0.42;
 /** A borda do fim do feixe não é um corte seco: espalha um pouco (difração). */
 const TAIL_SOFT = 70;
 /** Índice de refração exagerado de cada faixa, do vermelho (1,5) ao violeta. */
@@ -125,15 +126,14 @@ interface PrismBeamProps {
   pulse: number;
   /** Progresso do encerramento do hero (0 até a última cor, 1 com a tela preta) */
   outro: MotionValue<number>;
-  /** Lâmpada do triângulo acesa; ao mudar, ela apaga ou reacende com as falhas */
-  lit: boolean;
-  onLampSettled?: (lit: boolean) => void;
 }
 
 /** Triângulo de vidro atrás do nome: o feixe branco entra pela face esquerda e sai em espectro pela direita. */
-export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro, lit, onLampSettled }: PrismBeamProps) {
+export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro }: PrismBeamProps) {
   const beamOpacity = useTransform(focus, [0, 1], [1, 0.35]);
   const prismOpacity = useTransform(focus, [0, 1], [1, 0.7]);
+  // Quanto a lâmpada do triângulo já morreu: anda junto com a luz saindo da tela
+  const lampDecay = useTransform(outro, [LAMP_START, LAMP_END], [0, 1]);
 
   const reduce = useReducedMotion();
   const [scope, animate] = useAnimate<SVGGElement>();
@@ -252,7 +252,7 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
 
       {/* Triângulo: desenha o contorno, depois acende o vidro. Nos projetos vira neon na cor do projeto. */}
       <motion.g style={{ opacity: prismOpacity }}>
-        <Lamp lit={lit} top={top} left={left} right={right} side={side} instant={!!reduce} onSettled={onLampSettled}>
+        <Lamp decay={lampDecay} top={top} left={left} right={right} side={side} instant={!!reduce}>
         <g ref={scope}>
           <g className={pulse >= 0 ? "prism-hum" : undefined}>
             <motion.path

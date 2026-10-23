@@ -20,7 +20,7 @@ import {
   useTunnelStage,
 } from "@/components/ui/perspective-tunnel";
 import { ChoiceButtons, ExploreOverlay, type ExploreMode } from "./Explore";
-import { INTRO, LAMP_FROM, PrismBeam, prismShape, type PrismGeometry } from "./PrismBeam";
+import { INTRO, LAMP_END, LAMP_START, LIGHT_OFF_END, PrismBeam, prismShape, type PrismGeometry } from "./PrismBeam";
 import { ProjectCard } from "./ProjectCard";
 import { SpectrumRail } from "./SpectrumRail";
 
@@ -106,9 +106,10 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
   const chromeOpacity = useTransform(outro, [0, 0.4], [1, 0]);
 
   // O nome some junto com a luz, voltando para as sombras como na abertura
-  const nameOpacity = useTransform(outro, [0.18, 0.5], [1, 0]);
-  const nameBlur = useTransform(outro, [0.18, 0.5], [0, 14]);
-  const nameBrightness = useTransform(outro, [0.18, 0.5], [1, 0]);
+  const nameOut = [LAMP_START, LIGHT_OFF_END];
+  const nameOpacity = useTransform(outro, nameOut, [1, 0]);
+  const nameBlur = useTransform(outro, nameOut, [0, 14]);
+  const nameBrightness = useTransform(outro, nameOut, [1, 0]);
   const nameFilter = useMotionTemplate`blur(${nameBlur}px) brightness(${nameBrightness})`;
 
   const [active, setActive] = useState(-1);
@@ -127,16 +128,11 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
     window.scrollTo({ top: section.offsetTop + peaks[index] * scrollable, behavior: reduce ? "auto" : "smooth" });
   };
 
-  // Fim do hero: o triângulo apaga como uma lâmpada velha e aparecem as duas opções.
-  // Voltando a rolar para cima, ele reacende.
-  const [lampLit, setLampLit] = useState(true);
+  // Fim do hero: assim que o triângulo apaga de vez, aparecem as duas opções.
+  // Voltando a rolar para cima, ele reacende e elas somem.
   const [choiceReady, setChoiceReady] = useState(false);
   const [explore, setExplore] = useState<ExploreMode | null>(null);
-  useMotionValueEvent(outro, "change", (o) => {
-    const lit = o < LAMP_FROM;
-    setLampLit(lit);
-    if (lit) setChoiceReady(false);
-  });
+  useMotionValueEvent(outro, "change", (o) => setChoiceReady(o >= LAMP_END));
 
   const sectionHeight = `${100 + VH_PER_PROJECT / step}svh`;
   const current = active >= 0 ? projects[active] : null;
@@ -182,8 +178,6 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
             animateIn={animateIn}
             pulse={active}
             outro={outro}
-            lit={lampLit}
-            onLampSettled={(lit) => setChoiceReady(!lit)}
           />
         )}
         <ChoiceButtons visible={choiceReady && explore === null} onPick={setExplore} />

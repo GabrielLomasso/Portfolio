@@ -41,23 +41,35 @@ export function ChoiceButtons({ visible, onPick }: ChoiceButtonsProps) {
       {visible && (
         <motion.div
           key="choice"
-          className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 px-6 sm:flex-row sm:gap-6"
-          exit={{ opacity: 0, transition: { duration: 0.25 } }}
+          className="absolute inset-0 z-30 flex flex-col items-center justify-center px-6 text-center"
+          exit={{ opacity: 0, transition: { duration: 0.2 } }}
         >
-          {options.map((option, i) => (
-            <motion.button
-              key={option.mode}
-              type="button"
-              onClick={() => onPick(option.mode)}
-              // Acende como um terminal velho: falha uma vez antes de firmar
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.8, 0.1, 0.6, 0.2, 1] }}
-              transition={{ duration: 0.7, delay: 0.15 + i * 0.25, times: [0, 0.15, 0.3, 0.5, 0.65, 1] }}
-              className={`${MONO} w-56 border border-white/20 px-6 py-4 text-white/80 transition-[border-color,color,box-shadow] duration-300 hover:border-white/70 hover:text-white hover:shadow-[0_0_28px_rgb(255_255_255/0.18)]`}
-            >
-              {option.label}
-            </motion.button>
-          ))}
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Escolha um lado</h2>
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted sm:text-base">
+              Conheça quem está por trás do prisma ou veja o que já passou por ele.
+            </p>
+          </motion.div>
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:gap-6">
+            {options.map((option, i) => (
+              <motion.button
+                key={option.mode}
+                type="button"
+                onClick={() => onPick(option.mode)}
+                // Acende como um terminal velho: falha uma vez antes de firmar
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.8, 0.1, 0.6, 0.2, 1] }}
+                transition={{ duration: 0.45, delay: 0.1 + i * 0.12, times: [0, 0.15, 0.3, 0.5, 0.65, 1] }}
+                className={`${MONO} w-56 border border-white/20 px-6 py-4 text-white/80 transition-[border-color,color,box-shadow] duration-300 hover:border-white/70 hover:text-white hover:shadow-[0_0_28px_rgb(255_255_255/0.18)]`}
+              >
+                {option.label}
+              </motion.button>
+            ))}
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
