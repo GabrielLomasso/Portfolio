@@ -237,3 +237,51 @@
     color: transparent;
   }
 }
+
+/* Laboratório: texto com glitch (duas cópias recortadas e deslocadas) */
+@keyframes lab-glitch-a {
+  0%, 100% { clip-path: inset(0 0 85% 0); transform: translate(-3px, 0); }
+  20% { clip-path: inset(40% 0 35% 0); transform: translate(3px, 0); }
+  40% { clip-path: inset(70% 0 5% 0); transform: translate(-2px, 0); }
+  60% { clip-path: inset(15% 0 60% 0); transform: translate(2px, 0); }
+  80% { clip-path: inset(55% 0 20% 0); transform: translate(-3px, 0); }
+}
+
+@keyframes lab-glitch-b {
+  0%, 100% { clip-path: inset(80% 0 0 0); transform: translate(3px, 0); }
+  25% { clip-path: inset(10% 0 70% 0); transform: translate(-3px, 0); }
+  50% { clip-path: inset(50% 0 30% 0); transform: translate(2px, 0); }
+  75% { clip-path: inset(30% 0 50% 0); transform: translate(-2px, 0); }
+}
+
+@layer components {
+  .lab-glitch {
+    position: relative;
+    color: var(--color-fg);
+  }
+
+  .lab-glitch::before,
+  .lab-glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+  }
+
+  .lab-glitch::before {
+    color: oklch(0.65 0.25 25);
+    animation: lab-glitch-a 2.4s steps(1) infinite;
+  }
+
+  .lab-glitch::after {
+    color: oklch(0.75 0.16 210);
+    animation: lab-glitch-b 1.9s steps(1) infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lab-glitch::before,
+    .lab-glitch::after {
+      animation: none;
+      display: none;
+    }
+  }
+}
