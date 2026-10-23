@@ -1,6 +1,7 @@
 import { animate as animateValue, motion, useAnimate, useMotionValue, useMotionValueEvent, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { Lamp } from "./Lamp";
+import { vividColor } from "@/lib/color";
 
 // Faixas do espectro que saem do prisma, como na capa do Dark Side of the Moon (vermelho em cima).
 const BANDS = [25, 55, 95, 145, 200, 255, 300];
@@ -227,8 +228,8 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
       <defs>
         {BANDS.map((hue) => (
           <linearGradient key={hue} id={`band-${hue}`} x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor={`oklch(0.8 0.2 ${hue})`} stopOpacity="0.95" />
-            <stop offset="100%" stopColor={`oklch(0.6 0.2 ${hue})`} stopOpacity="0.15" />
+            <stop offset="0%" stopColor={vividColor(hue)} stopOpacity="0.95" />
+            <stop offset="100%" stopColor={vividColor(hue, 0.75)} stopOpacity="0.15" />
           </linearGradient>
         ))}
         <linearGradient id="beam-in" x1="0" x2="1" y1="0" y2="0">

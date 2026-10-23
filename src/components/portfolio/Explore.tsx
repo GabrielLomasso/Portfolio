@@ -7,6 +7,7 @@ import { PROJECT_DETAILS } from "@/data/project-details";
 import { Lamp } from "./Lamp";
 import { prismShape, type PrismGeometry } from "./PrismBeam";
 import { ProjectCard } from "./ProjectCard";
+import { vividColor } from "@/lib/color";
 
 export type ExploreMode = "about" | "projects";
 
@@ -371,8 +372,8 @@ function Spectrum({ geometry, projects, visible, interactive, selected, onSelect
       <defs>
         {projects.map((p) => (
           <linearGradient key={p.slug} id={`x-band-${p.slug}`} x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor={`oklch(0.8 0.2 ${p.hue})`} stopOpacity="0.95" />
-            <stop offset="100%" stopColor={`oklch(0.6 0.2 ${p.hue})`} stopOpacity="0.3" />
+            <stop offset="0%" stopColor={vividColor(p.hue)} stopOpacity="0.95" />
+            <stop offset="100%" stopColor={vividColor(p.hue, 0.75)} stopOpacity="0.3" />
           </linearGradient>
         ))}
         <clipPath id="x-fan-reveal">
