@@ -183,7 +183,7 @@ export function ProjectCard({ project, active = false }: { project: Project; act
         style={{ background: `radial-gradient(120% 90% at 80% 0%, ${tint(0.3, 0.08)}, #0a0a0e 70%)` }}
       >
         {project.image ? (
-          <img src={project.image} alt={`Tela do ${project.name}`} draggable={false} className="size-full object-cover" />
+          <img src={project.image} alt={`Tela do ${project.name}`} draggable={false} className="size-full object-cover object-top" />
         ) : (
           <Mock />
         )}

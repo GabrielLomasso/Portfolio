@@ -29,6 +29,7 @@ export const PROJECTS: Project[] = [
     stack: ["React", "TanStack Start", "Tailwind"],
     hue: 22,
     preview: "landing",
+    image: "/projects/thaylor.webp",
   },
   {
     slug: "kitnets-bh",
