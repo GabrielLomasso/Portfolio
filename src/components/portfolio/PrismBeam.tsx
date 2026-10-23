@@ -63,15 +63,7 @@ function Band({ hue, points, currentHue, focus }: BandProps) {
     return (1 - f) * 0.9 + f * (0.08 + near * 0.92);
   });
 
-  // Cada cor como um tubo de neon: halo na própria cor, interior mais suave e contorno forte e saturado
-  return (
-    <motion.g style={{ opacity }}>
-      <polygon points={points} fill={`url(#band-neon-${hue})`} filter="url(#band-glow-wide)" opacity={0.55} />
-      <polygon points={points} fill={`url(#band-neon-${hue})`} filter="url(#band-glow)" opacity={0.8} />
-      <polygon points={points} fill={`url(#band-${hue})`} />
-      <polygon points={points} fill="none" stroke={`url(#band-edge-${hue})`} strokeWidth={1.6} strokeLinejoin="round" />
-    </motion.g>
-  );
+  return <motion.polygon points={points} fill={`url(#band-${hue})`} style={{ opacity }} />;
 }
 
 interface PrismBeamProps {
@@ -134,8 +126,8 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse }: Pri
       <defs>
         {BANDS.map((hue) => (
           <linearGradient key={hue} id={`band-${hue}`} x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor={`oklch(0.76 0.22 ${hue})`} stopOpacity="0.6" />
-            <stop offset="100%" stopColor={`oklch(0.6 0.2 ${hue})`} stopOpacity="0.1" />
+            <stop offset="0%" stopColor={`oklch(0.8 0.2 ${hue})`} stopOpacity="0.95" />
+            <stop offset="100%" stopColor={`oklch(0.6 0.2 ${hue})`} stopOpacity="0.15" />
           </linearGradient>
         ))}
         <linearGradient id="beam-in" x1="0" x2="1" y1="0" y2="0">
@@ -147,26 +139,8 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse }: Pri
           <stop offset="0%" stopColor="#fff" stopOpacity="0.06" />
           <stop offset="100%" stopColor="#fff" stopOpacity="0.01" />
         </linearGradient>
-        {BANDS.map((hue) => (
-          <linearGradient key={hue} id={`band-neon-${hue}`} x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor={`oklch(0.7 0.26 ${hue})`} stopOpacity="1" />
-            <stop offset="100%" stopColor={`oklch(0.62 0.24 ${hue})`} stopOpacity="0.3" />
-          </linearGradient>
-        ))}
-        {BANDS.map((hue) => (
-          <linearGradient key={hue} id={`band-edge-${hue}`} x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor={`oklch(0.82 0.24 ${hue})`} stopOpacity="1" />
-            <stop offset="100%" stopColor={`oklch(0.72 0.24 ${hue})`} stopOpacity="0.45" />
-          </linearGradient>
-        ))}
         <filter id="soft-glow" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="4" />
-        </filter>
-        <filter id="band-glow" x="-10%" y="-60%" width="120%" height="220%">
-          <feGaussianBlur stdDeviation="4" />
-        </filter>
-        <filter id="band-glow-wide" x="-10%" y="-80%" width="120%" height="260%">
-          <feGaussianBlur stdDeviation="14" />
         </filter>
         <clipPath id="beam-reveal">
           <motion.rect

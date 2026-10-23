@@ -257,8 +257,6 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
                   >
                     {current.kind} · {current.name}
                   </p>
-                  <p className="mt-1.5 text-xs leading-snug text-fg/75 sm:mt-2 sm:text-sm">{current.description}</p>
-                  <p className="mt-2 hidden font-mono text-[10px] text-muted sm:block">{current.stack.join("  /  ")}</p>
                 </motion.div>
               )}
             </AnimatePresence>
