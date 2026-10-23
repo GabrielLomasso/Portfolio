@@ -28,6 +28,19 @@ interface Point {
   y: number;
 }
 
+/** Vértices do triângulo. O nome fica no meio da altura (não no baricentro, que fica a 2/3 e deixa o nome baixo). */
+export function prismShape({ width: W, height: H, cx, cy, isMobile }: PrismGeometry) {
+  const side = Math.min(isMobile ? W * 0.86 : W * 0.56, (H * 0.8) / (Math.sqrt(3) / 2));
+  const tall = (side * Math.sqrt(3)) / 2;
+  return {
+    side,
+    tall,
+    top: { x: cx, y: cy - tall / 2 },
+    left: { x: cx - side / 2, y: cy + tall / 2 },
+    right: { x: cx + side / 2, y: cy + tall / 2 },
+  };
+}
+
 const lerp = (a: Point, b: Point, t: number): Point => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
 const pts = (...points: Point[]) => points.map((p) => `${p.x},${p.y}`).join(" ");
 
@@ -79,13 +92,8 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse }: Pri
     });
   }, [pulse, reduce, animate, scope]);
 
-  const { width: W, height: H, cx, cy, isMobile } = geometry;
-  const side = Math.min(isMobile ? W * 0.86 : W * 0.56, (H * 0.8) / (Math.sqrt(3) / 2));
-  const tall = (side * Math.sqrt(3)) / 2;
-  // Nome no meio da altura do triângulo (não no baricentro, que fica a 2/3 e deixa o nome baixo)
-  const top = { x: cx, y: cy - tall / 2 };
-  const left = { x: cx - side / 2, y: cy + tall / 2 };
-  const right = { x: cx + side / 2, y: cy + tall / 2 };
+  const { width: W, height: H } = geometry;
+  const { top, left, right } = prismShape(geometry);
 
   const entry = lerp(left, top, 0.55);
   const beamStart = { x: 0, y: entry.y + entry.x * 0.16 };

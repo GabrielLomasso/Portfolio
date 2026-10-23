@@ -17,7 +17,7 @@ import {
   useCameraParallax,
   useTunnelStage,
 } from "@/components/ui/perspective-tunnel";
-import { INTRO, PrismBeam, type PrismGeometry } from "./PrismBeam";
+import { INTRO, PrismBeam, prismShape, type PrismGeometry } from "./PrismBeam";
 import { ProjectCard } from "./ProjectCard";
 import { SpectrumRail } from "./SpectrumRail";
 
@@ -112,6 +112,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
 
   const sectionHeight = `${100 + VH_PER_PROJECT / step}svh`;
   const current = active >= 0 ? projects[active] : null;
+  const shape = geometry ? prismShape(geometry) : null;
   const animateIn = !reduce;
 
   return (
@@ -215,14 +216,25 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
             />
           </motion.div>
 
-          {/* Fora do fluxo: assim o nome fica exatamente no centro da tela e do triângulo */}
-          <div className="absolute left-1/2 top-full mt-8 h-28 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 [text-shadow:0_1px_14px_rgb(0_0_0/0.95),0_0_4px_rgb(0_0_0/0.8)] sm:mt-10">
-            <motion.div style={{ opacity: introOpacity }} className="absolute inset-x-0 top-0">
+        </div>
+
+        {/* Legenda encostada na base do triângulo, por dentro. A caixa tem altura zero na linha da
+            base e o texto cresce para cima; a largura é o que cabe no triângulo um pouco acima da base. */}
+        {shape && geometry && (
+          <div
+            className="pointer-events-none absolute z-20 -translate-x-1/2 text-center [text-shadow:0_1px_14px_rgb(0_0_0/0.95),0_0_4px_rgb(0_0_0/0.8)]"
+            style={{
+              left: geometry.cx,
+              top: shape.left.y - (geometry.isMobile ? 12 : 22),
+              width: Math.min(448, shape.side * (1 - 130 / shape.tall)),
+            }}
+          >
+            <motion.div style={{ opacity: introOpacity }} className="absolute inset-x-0 bottom-0">
               <motion.p
                 initial={animateIn ? { opacity: 0, y: 8 } : false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: INTRO.ui + 0.2, ease: EASE }}
-                className="text-sm text-muted sm:text-base"
+                className="text-xs text-muted sm:text-sm"
               >
                 Sites e sistemas web, do protótipo ao ar.
               </motion.p>
@@ -236,22 +248,22 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                   exit={{ opacity: 0, y: -10, filter: "blur(6px)" }}
                   transition={{ duration: 0.35, ease: EASE }}
-                  className="absolute inset-x-0 top-0"
+                  className="absolute inset-x-0 bottom-0"
                   aria-live="polite"
                 >
                   <p
-                    className="font-mono text-[10px] uppercase tracking-[0.3em] sm:text-xs"
+                    className="font-mono text-[9px] uppercase tracking-[0.3em] sm:text-[11px]"
                     style={{ color: `oklch(0.8 0.15 ${current.hue})` }}
                   >
                     {current.kind} · {current.name}
                   </p>
-                  <p className="mt-2 text-sm text-fg/75 sm:text-base">{current.description}</p>
-                  <p className="mt-3 font-mono text-[10px] text-muted">{current.stack.join("  /  ")}</p>
+                  <p className="mt-1.5 text-xs leading-snug text-fg/75 sm:mt-2 sm:text-sm">{current.description}</p>
+                  <p className="mt-2 hidden font-mono text-[10px] text-muted sm:block">{current.stack.join("  /  ")}</p>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
-        </div>
+        )}
 
         <motion.div style={{ opacity: introOpacity }} className="pointer-events-none absolute bottom-8 z-20">
           <motion.div
