@@ -1,4 +1,5 @@
-import { motion, useTransform, type MotionValue } from "framer-motion";
+import { motion, useAnimate, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
+import { useEffect } from "react";
 
 // Faixas do espectro que saem do prisma, como na capa do Dark Side of the Moon (vermelho em cima).
 const BANDS = [25, 55, 95, 145, 200, 255, 300];
@@ -57,19 +58,34 @@ interface PrismBeamProps {
   currentHue: MotionValue<number>;
   focus: MotionValue<number>;
   animateIn: boolean;
+  /** Projeto em foco (-1 no hero). Cada troca dispara o glitch do triângulo. */
+  pulse: number;
 }
 
 /** Triângulo de vidro atrás do nome: o feixe branco entra pela face esquerda e sai em espectro pela direita. */
-export function PrismBeam({ geometry, currentHue, focus, animateIn }: PrismBeamProps) {
+export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse }: PrismBeamProps) {
   const beamOpacity = useTransform(focus, [0, 1], [1, 0.35]);
-  const prismOpacity = useTransform(focus, [0, 1], [1, 0.4]);
+  const prismOpacity = useTransform(focus, [0, 1], [1, 0.7]);
+  const reduce = useReducedMotion();
+  const [scope, animate] = useAnimate<SVGGElement>();
+
+  // Glitch na troca de projeto: o triângulo perde o sinal e aparecem fantasmas vermelho/ciano deslocados.
+  useEffect(() => {
+    if (pulse < 0 || reduce || !scope.current) return;
+    animate(scope.current, { opacity: [1, 0.15, 1, 0.45, 0.1, 1, 0.75, 1], x: [0, -6, 5, 0, 7, -3, 0, 0] }, { duration: 0.65, ease: "linear" });
+    scope.current.querySelectorAll<SVGPathElement>(".prism-ghost").forEach((ghost, i) => {
+      const dir = i === 0 ? -1 : 1;
+      animate(ghost, { opacity: [0, 0.9, 0.1, 0.8, 0], x: [0, dir * 9, dir * 3, dir * 12, 0] }, { duration: 0.5, delay: 0.04 * i, ease: "linear" });
+    });
+  }, [pulse, reduce, animate, scope]);
 
   const { width: W, height: H, cx, cy, isMobile } = geometry;
-  const side = Math.min(isMobile ? W * 0.68 : W * 0.46, H * 0.62);
+  const side = Math.min(isMobile ? W * 0.86 : W * 0.56, (H * 0.8) / (Math.sqrt(3) / 2));
   const tall = (side * Math.sqrt(3)) / 2;
-  const top = { x: cx, y: cy - (2 * tall) / 3 };
-  const left = { x: cx - side / 2, y: cy + tall / 3 };
-  const right = { x: cx + side / 2, y: cy + tall / 3 };
+  // Nome no meio da altura do triângulo (não no baricentro, que fica a 2/3 e deixa o nome baixo)
+  const top = { x: cx, y: cy - tall / 2 };
+  const left = { x: cx - side / 2, y: cy + tall / 2 };
+  const right = { x: cx + side / 2, y: cy + tall / 2 };
 
   const entry = lerp(left, top, 0.55);
   const beamStart = { x: 0, y: entry.y + entry.x * 0.16 };
@@ -138,38 +154,44 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn }: PrismBeamP
         </clipPath>
       </defs>
 
-      {/* Triângulo: desenha o contorno, depois acende o vidro */}
+      {/* Triângulo: desenha o contorno, depois acende o vidro. Nos projetos vira neon na cor do projeto. */}
       <motion.g style={{ opacity: prismOpacity }}>
-        <motion.path
-          d={triangle}
-          fill="url(#prism-fill)"
-          initial={animateIn ? { fillOpacity: 0 } : false}
-          animate={{ fillOpacity: 1 }}
-          transition={{ duration: 1, delay: INTRO.triangle + 0.8 }}
-        />
-        <motion.path
-          d={triangle}
-          fill="none"
-          stroke="#fff"
-          strokeOpacity={0.45}
-          strokeWidth={6}
-          strokeLinejoin="round"
-          filter="url(#soft-glow)"
-          initial={animateIn ? { pathLength: 0 } : false}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.3, delay: INTRO.triangle, ease: [0.65, 0, 0.35, 1] }}
-        />
-        <motion.path
-          d={triangle}
-          fill="none"
-          stroke="#fff"
-          strokeOpacity={0.9}
-          strokeWidth={1.5}
-          strokeLinejoin="round"
-          initial={animateIn ? { pathLength: 0 } : false}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.3, delay: INTRO.triangle, ease: [0.65, 0, 0.35, 1] }}
-        />
+        <g ref={scope}>
+          <g className={pulse >= 0 ? "prism-hum" : undefined}>
+            <motion.path
+              d={triangle}
+              fill="url(#prism-fill)"
+              initial={animateIn ? { fillOpacity: 0 } : false}
+              animate={{ fillOpacity: 1 }}
+              transition={{ duration: 1, delay: INTRO.triangle + 0.8 }}
+            />
+            <motion.path
+              d={triangle}
+              fill="none"
+              style={{ stroke: "oklch(0.85 var(--c, 0) var(--h, 0))" }}
+              strokeOpacity={0.55}
+              strokeWidth={7}
+              strokeLinejoin="round"
+              filter="url(#soft-glow)"
+              initial={animateIn ? { pathLength: 0 } : false}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1.3, delay: INTRO.triangle, ease: [0.65, 0, 0.35, 1] }}
+            />
+            <motion.path
+              d={triangle}
+              fill="none"
+              style={{ stroke: "oklch(0.95 calc(var(--c, 0) * 0.6) var(--h, 0))" }}
+              strokeOpacity={0.95}
+              strokeWidth={1.5}
+              strokeLinejoin="round"
+              initial={animateIn ? { pathLength: 0 } : false}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1.3, delay: INTRO.triangle, ease: [0.65, 0, 0.35, 1] }}
+            />
+          </g>
+          <path className="prism-ghost" d={triangle} fill="none" stroke="oklch(0.66 0.25 25)" strokeWidth={1.5} strokeLinejoin="round" opacity={0} />
+          <path className="prism-ghost" d={triangle} fill="none" stroke="oklch(0.78 0.16 210)" strokeWidth={1.5} strokeLinejoin="round" opacity={0} />
+        </g>
       </motion.g>
 
       {/* Feixe branco até a face esquerda */}

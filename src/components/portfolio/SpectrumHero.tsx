@@ -143,7 +143,18 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
           className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgb(255_255_255/0.07)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(ellipse_65%_60%_at_50%_50%,#000_30%,transparent_100%)]"
         />
 
-        {geometry && <PrismBeam geometry={geometry} currentHue={hue} focus={focus} animateIn={animateIn} />}
+        {geometry && (
+          <PrismBeam geometry={geometry} currentHue={hue} focus={focus} animateIn={animateIn} pulse={active} />
+        )}
+
+        <motion.p
+          initial={animateIn ? { opacity: 0, y: -6 } : false}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: INTRO.ui, ease: EASE }}
+          className="pointer-events-none absolute inset-x-0 top-6 z-30 text-center font-mono text-[10px] uppercase tracking-[0.35em] text-muted sm:top-8 sm:text-xs"
+        >
+          Portfólio · Belo Horizonte
+        </motion.p>
 
         <PerspectiveTunnel
           className="pointer-events-none absolute inset-0 [&>*]:pointer-events-auto"
@@ -186,17 +197,6 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
 
         {/* Nome + legenda: fica por cima do túnel, como uma lente */}
         <div className="pointer-events-none relative z-20 flex flex-col items-center px-4 text-center">
-          <motion.div style={{ opacity: introOpacity }}>
-            <motion.p
-              initial={animateIn ? { opacity: 0, y: 8 } : false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: INTRO.ui, ease: EASE }}
-              className="mb-6 font-mono text-[10px] uppercase tracking-[0.35em] text-muted [text-shadow:0_0_6px_#000,0_0_12px_#000] sm:text-xs"
-            >
-              Portfólio · Belo Horizonte
-            </motion.p>
-          </motion.div>
-
           {/* Surge das sombras: sai do preto, desfocado, e ganha luz devagar */}
           <motion.div
             ref={nameRef}
@@ -210,12 +210,13 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
               dispersion={dispersion}
               cyber={focus}
               pulse={active}
-              className="font-display text-[clamp(2.5rem,9.5vw,9.5rem)] font-black leading-[0.98] tracking-[0.02em]"
+              className="font-display text-[clamp(2.75rem,10vw,10rem)] font-black leading-[0.9] tracking-[0.01em]"
               style={{ "--mx": mx, "--my": my } as unknown as CSSProperties}
             />
           </motion.div>
 
-          <div className="relative mt-8 h-28 w-full max-w-md [text-shadow:0_1px_14px_rgb(0_0_0/0.95),0_0_4px_rgb(0_0_0/0.8)] sm:mt-10">
+          {/* Fora do fluxo: assim o nome fica exatamente no centro da tela e do triângulo */}
+          <div className="absolute left-1/2 top-full mt-8 h-28 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 [text-shadow:0_1px_14px_rgb(0_0_0/0.95),0_0_4px_rgb(0_0_0/0.8)] sm:mt-10">
             <motion.div style={{ opacity: introOpacity }} className="absolute inset-x-0 top-0">
               <motion.p
                 initial={animateIn ? { opacity: 0, y: 8 } : false}

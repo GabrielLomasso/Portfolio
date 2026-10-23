@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: "Orbitron", system-ui, sans-serif;
+  --font-display: "Tektur", system-ui, sans-serif;
   --font-sans: "Hanken Grotesk", system-ui, sans-serif;
   --font-mono: "Martian Mono", ui-monospace, monospace;
 
@@ -79,8 +79,8 @@
 
   .glass-glow {
     text-shadow:
-      0 0 40px oklch(0.72 var(--c, 0) var(--h, 0) / calc(0.12 + var(--c, 0) * 2)),
-      0 0 120px oklch(0.6 var(--c, 0) var(--h, 0) / calc(0.08 + var(--c, 0) * 1.6));
+      0 0 8px oklch(0.8 var(--c, 0) var(--h, 0) / calc(0.05 + var(--c, 0) * 3)),
+      0 0 32px oklch(0.65 var(--c, 0) var(--h, 0) / calc(0.03 + var(--c, 0) * 1.8));
   }
 
   .glass-layer.glass-disperse {
@@ -105,19 +105,20 @@
   }
 
   .glass-sheen {
+    /* Reflexo de lâmina: faixas com corte seco em vez de degradê suave (que deixa a letra com cara de bolha) */
     background-image: linear-gradient(
-      180deg,
-      rgb(255 255 255 / 0.85) 0%,
-      rgb(255 255 255 / 0.2) 14%,
-      transparent 34%,
+      172deg,
+      rgb(255 255 255 / 0.55) 0%,
+      rgb(255 255 255 / 0.4) 9%,
+      transparent 9.5%,
       transparent 50%,
-      rgb(255 255 255 / 0.7) 50.5%,
-      rgb(255 255 255 / 0.16) 64%,
-      transparent 84%
+      rgb(255 255 255 / 0.45) 50.5%,
+      rgb(255 255 255 / 0.3) 58%,
+      transparent 58.5%
     );
     -webkit-background-clip: text;
     background-clip: text;
-    opacity: 0.4;
+    opacity: 0.5;
   }
 
   /* Sem croma é borda de vidro branca; com projeto em foco vira tubo de neon na cor dele */
@@ -162,10 +163,16 @@
     animation: flicker-on 0.7s steps(1) both;
   }
 
+  /* Mesmo mau contato do nome, em outro ritmo para os dois não piscarem juntos */
+  .prism-hum {
+    animation: neon-hum 3.9s steps(1) -1.7s infinite;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .glass-layer.glass-scan,
     .glass-text[data-cyber="on"] .glass-glow,
     .glass-text[data-cyber="on"] .glass-edge,
+    .prism-hum,
     .neon-on {
       animation: none;
     }

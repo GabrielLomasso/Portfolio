@@ -81,8 +81,8 @@ export function GlassText({ lines, dispersion, cyber, pulse, className, style }:
           </filter>
           {/* Luz especular sobre o alfa desfocado: realça as quinas viradas para a luz */}
           <filter id={`${id}-bevel`}>
-            <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur" />
-            <feSpecularLighting in="blur" surfaceScale="6" specularConstant="1.3" specularExponent="60" lightingColor="#fff" result="spec">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur" />
+            <feSpecularLighting in="blur" surfaceScale="3" specularConstant="1.4" specularExponent="45" lightingColor="#fff" result="spec">
               <feDistantLight azimuth="235" elevation="38" />
             </feSpecularLighting>
             <feComposite in="spec" in2="SourceAlpha" operator="in" />
