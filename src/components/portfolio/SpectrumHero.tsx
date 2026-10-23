@@ -19,16 +19,14 @@ import {
   useCameraParallax,
   useTunnelStage,
 } from "@/components/ui/perspective-tunnel";
-import { Pyramid3D } from "./Pyramid3D";
-import { INTRO, PrismBeam, prismShape, PRISM_3D_FROM, type PrismGeometry } from "./PrismBeam";
-import { PYRAMID } from "./pyramid-config";
-import { PYRAMID_TUNING, PyramidTuner } from "./PyramidTuner";
+import { ChoiceButtons, ExploreOverlay, type ExploreMode } from "./Explore";
+import { INTRO, LAMP_FROM, PrismBeam, prismShape, type PrismGeometry } from "./PrismBeam";
 import { ProjectCard } from "./ProjectCard";
 import { SpectrumRail } from "./SpectrumRail";
 
 // Trecho inicial do scroll só com o nome; depois disso os cards entram no túnel.
 const TUNNEL_FROM = 0.06;
-// O túnel termina aqui; o resto do scroll é o encerramento (a luz apaga, a pirâmide sai girando).
+// O túnel termina aqui; o resto do scroll é o encerramento (a luz apaga e o triângulo também).
 const TUNNEL_TO = 0.8;
 const OUTRO_FROM = 0.81;
 const CARD_SPAN = 0.3;
@@ -129,15 +127,16 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
     window.scrollTo({ top: section.offsetTop + peaks[index] * scrollable, behavior: reduce ? "auto" : "smooth" });
   };
 
-  // Painel de ajuste da pirâmide (?piramide no dev): rola até um momento do giro
-  const [pyramid, setPyramid] = useState(PYRAMID);
-  const previewPyramid = (moment: number) => {
-    const section = sectionRef.current;
-    if (!section) return;
-    const o = PRISM_3D_FROM + moment * (1 - PRISM_3D_FROM);
-    const p = OUTRO_FROM + o * (1 - OUTRO_FROM);
-    window.scrollTo({ top: section.offsetTop + p * (section.offsetHeight - window.innerHeight) });
-  };
+  // Fim do hero: o triângulo apaga como uma lâmpada velha e aparecem as duas opções.
+  // Voltando a rolar para cima, ele reacende.
+  const [lampLit, setLampLit] = useState(true);
+  const [choiceReady, setChoiceReady] = useState(false);
+  const [explore, setExplore] = useState<ExploreMode | null>(null);
+  useMotionValueEvent(outro, "change", (o) => {
+    const lit = o < LAMP_FROM;
+    setLampLit(lit);
+    if (lit) setChoiceReady(false);
+  });
 
   const sectionHeight = `${100 + VH_PER_PROJECT / step}svh`;
   const current = active >= 0 ? projects[active] : null;
@@ -176,9 +175,18 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
         </motion.div>
 
         {geometry && (
-          <PrismBeam geometry={geometry} currentHue={hue} focus={focus} animateIn={animateIn} pulse={active} outro={outro} />
+          <PrismBeam
+            geometry={geometry}
+            currentHue={hue}
+            focus={focus}
+            animateIn={animateIn}
+            pulse={active}
+            outro={outro}
+            lit={lampLit}
+            onLampSettled={(lit) => setChoiceReady(!lit)}
+          />
         )}
-        {geometry && <Pyramid3D geometry={geometry} outro={outro} config={pyramid} />}
+        <ChoiceButtons visible={choiceReady && explore === null} onPick={setExplore} />
 
         <motion.div style={{ opacity: chromeOpacity }} className="pointer-events-none absolute inset-x-0 top-6 z-30 sm:top-8">
           <motion.p
@@ -323,7 +331,9 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
 
         <div aria-hidden className="grain pointer-events-none absolute inset-0 z-40 opacity-[0.06] mix-blend-overlay" />
       </motion.div>
-      {PYRAMID_TUNING && <PyramidTuner config={pyramid} onChange={setPyramid} onPreview={previewPyramid} />}
+      {explore && geometry && (
+        <ExploreOverlay initialMode={explore} geometry={geometry} projects={projects} onClose={() => setExplore(null)} />
+      )}
     </section>
   );
 }

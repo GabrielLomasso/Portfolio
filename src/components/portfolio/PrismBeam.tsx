@@ -1,6 +1,6 @@
 import { motion, useAnimate, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef } from "react";
-import { PYRAMID } from "./pyramid-config";
+import { Lamp } from "./Lamp";
 
 // Faixas do espectro que saem do prisma, como na capa do Dark Side of the Moon (vermelho em cima).
 const BANDS = [25, 55, 95, 145, 200, 255, 300];
@@ -16,14 +16,10 @@ export const INTRO = {
 
 /**
  * Encerramento do hero (progresso 0–1 depois da última cor): a luz se apaga da esquerda
- * para a direita, o arco-íris some e, a partir deste ponto, o triângulo vira a pirâmide 3D.
+ * para a direita, o arco-íris some com o nome e, a partir deste ponto, o triângulo apaga
+ * como uma lâmpada velha.
  */
-export const PRISM_3D_FROM = PYRAMID.inicio;
-/**
- * Troca do triângulo plano pela pirâmide (em unidades do encerramento). De frente os dois têm
- * o mesmo contorno, então a troca é quase instantânea e a pirâmide só começa a girar depois dela.
- */
-export const PRISM_FADE = 0.01;
+export const LAMP_FROM = 0.5;
 
 /*
  * Ótica do apagar da luz. Quando a fonte desliga, a luz já emitida continua viajando:
@@ -33,7 +29,7 @@ export const PRISM_FADE = 0.01;
  * termina de sair primeiro e o violeta por último; fora do vidro, todas as cores voltam
  * à mesma velocidade. A diferença real (~1%) é exagerada aqui, como o próprio leque.
  */
-/** Tudo apagado antes de o triângulo virar a pirâmide. */
+/** A luz termina de sair da tela antes de o triângulo apagar. */
 const LIGHT_OFF_END = 0.42;
 /** A borda do fim do feixe não é um corte seco: espalha um pouco (difração). */
 const TAIL_SOFT = 70;
@@ -129,16 +125,15 @@ interface PrismBeamProps {
   pulse: number;
   /** Progresso do encerramento do hero (0 até a última cor, 1 com a tela preta) */
   outro: MotionValue<number>;
+  /** Lâmpada do triângulo acesa; ao mudar, ela apaga ou reacende com as falhas */
+  lit: boolean;
+  onLampSettled?: (lit: boolean) => void;
 }
 
 /** Triângulo de vidro atrás do nome: o feixe branco entra pela face esquerda e sai em espectro pela direita. */
-export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro }: PrismBeamProps) {
+export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro, lit, onLampSettled }: PrismBeamProps) {
   const beamOpacity = useTransform(focus, [0, 1], [1, 0.35]);
-  // O triângulo do SVG sai de cena quando a pirâmide 3D assume o lugar dele
-  const prismOpacity = useTransform([focus, outro], ([f, o]: number[]) => {
-    const handOff = Math.min(1, Math.max(0, (o - PRISM_3D_FROM) / PRISM_FADE));
-    return (1 - f * 0.3) * (1 - handOff);
-  });
+  const prismOpacity = useTransform(focus, [0, 1], [1, 0.7]);
 
   const reduce = useReducedMotion();
   const [scope, animate] = useAnimate<SVGGElement>();
@@ -154,7 +149,7 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
   }, [pulse, reduce, animate, scope]);
 
   const { width: W, height: H } = geometry;
-  const { top, left, right } = prismShape(geometry);
+  const { side, top, left, right } = prismShape(geometry);
 
   const entry = lerp(left, top, 0.55);
   const beamStart = { x: 0, y: entry.y + entry.x * 0.16 };
@@ -257,6 +252,7 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
 
       {/* Triângulo: desenha o contorno, depois acende o vidro. Nos projetos vira neon na cor do projeto. */}
       <motion.g style={{ opacity: prismOpacity }}>
+        <Lamp lit={lit} top={top} left={left} right={right} side={side} instant={!!reduce} onSettled={onLampSettled}>
         <g ref={scope}>
           <g className={pulse >= 0 ? "prism-hum" : undefined}>
             <motion.path
@@ -293,6 +289,7 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
           <path className="prism-ghost" d={triangle} fill="none" stroke="oklch(0.66 0.25 25)" strokeWidth={1.5} strokeLinejoin="round" opacity={0} />
           <path className="prism-ghost" d={triangle} fill="none" stroke="oklch(0.78 0.16 210)" strokeWidth={1.5} strokeLinejoin="round" opacity={0} />
         </g>
+        </Lamp>
       </motion.g>
 
       {/* Feixe branco até a face esquerda */}
