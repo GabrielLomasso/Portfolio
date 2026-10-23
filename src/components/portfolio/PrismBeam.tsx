@@ -15,7 +15,7 @@ export const INTRO = {
 
 /**
  * Encerramento do hero (progresso 0–1 depois da última cor): a luz se apaga da esquerda
- * para a direita, o arco-íris some e, a partir deste ponto, o triângulo vira o prisma 3D.
+ * para a direita, o arco-íris some e, a partir deste ponto, o triângulo vira a pirâmide 3D.
  */
 export const PRISM_3D_FROM = 0.45;
 
@@ -86,7 +86,7 @@ interface PrismBeamProps {
 /** Triângulo de vidro atrás do nome: o feixe branco entra pela face esquerda e sai em espectro pela direita. */
 export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro }: PrismBeamProps) {
   const beamOpacity = useTransform(focus, [0, 1], [1, 0.35]);
-  // O triângulo do SVG sai de cena quando o prisma 3D assume o lugar dele
+  // O triângulo do SVG sai de cena quando a pirâmide 3D assume o lugar dele
   const prismOpacity = useTransform([focus, outro], ([f, o]: number[]) => (o >= PRISM_3D_FROM ? 0 : 1 - f * 0.3));
 
   // A luz se apaga como se a fonte desligasse: o fim do feixe viaja até o prisma,

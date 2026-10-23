@@ -19,14 +19,14 @@ import {
   useCameraParallax,
   useTunnelStage,
 } from "@/components/ui/perspective-tunnel";
-import { Prism3D } from "./Prism3D";
+import { Pyramid3D } from "./Pyramid3D";
 import { INTRO, PrismBeam, prismShape, type PrismGeometry } from "./PrismBeam";
 import { ProjectCard } from "./ProjectCard";
 import { SpectrumRail } from "./SpectrumRail";
 
 // Trecho inicial do scroll só com o nome; depois disso os cards entram no túnel.
 const TUNNEL_FROM = 0.06;
-// O túnel termina aqui; o resto do scroll é o encerramento (a luz apaga, o prisma sai girando).
+// O túnel termina aqui; o resto do scroll é o encerramento (a luz apaga, a pirâmide sai girando).
 const TUNNEL_TO = 0.8;
 const OUTRO_FROM = 0.81;
 const CARD_SPAN = 0.3;
@@ -164,7 +164,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
         {geometry && (
           <PrismBeam geometry={geometry} currentHue={hue} focus={focus} animateIn={animateIn} pulse={active} outro={outro} />
         )}
-        {geometry && <Prism3D geometry={geometry} outro={outro} />}
+        {geometry && <Pyramid3D geometry={geometry} outro={outro} />}
 
         <motion.div style={{ opacity: chromeOpacity }} className="pointer-events-none absolute inset-x-0 top-6 z-30 sm:top-8">
           <motion.p
