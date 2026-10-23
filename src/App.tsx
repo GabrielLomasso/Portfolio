@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { SpectrumHero } from "@/components/portfolio/SpectrumHero";
 import { CommandPalette } from "@/components/sections/CommandPalette";
+import { PrismEasterEgg } from "@/components/sections/PrismEasterEgg";
 import { ScrollProgress } from "@/components/sections/ScrollProgress";
 import { PROJECTS } from "@/data/projects";
 
@@ -14,6 +15,7 @@ export default function App() {
     <main>
       <ScrollProgress />
       <CommandPalette />
+      <PrismEasterEgg />
       <SpectrumHero projects={VISIBLE_PROJECTS} />
       <Suspense fallback={<div className="min-h-svh" aria-hidden />}>
         <NewSections />
