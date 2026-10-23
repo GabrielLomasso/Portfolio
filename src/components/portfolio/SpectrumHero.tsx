@@ -20,7 +20,7 @@ import {
   useTunnelStage,
 } from "@/components/ui/perspective-tunnel";
 import { Pyramid3D } from "./Pyramid3D";
-import { INTRO, PrismBeam, prismShape, type PrismGeometry } from "./PrismBeam";
+import { INTRO, PrismBeam, prismShape, PYRAMID_PERSPECTIVE, type PrismGeometry } from "./PrismBeam";
 import { ProjectCard } from "./ProjectCard";
 import { SpectrumRail } from "./SpectrumRail";
 
@@ -86,7 +86,9 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
   const hue = useTransform(progress, peaks, projects.map((p) => p.hue));
   // Sem a luz, a cor também vai embora: o vidro volta a ser incolor no encerramento.
   const chroma = useTransform(progress, [0, TUNNEL_FROM, peaks[0], OUTRO_FROM, OUTRO_FROM + 0.05], [0, 0.03, 0.19, 0.19, 0]);
-  const focus = useTransform(progress, [TUNNEL_FROM * 0.5, peaks[0]], [0, 1]);
+  // Antes do encerramento o espectro inteiro volta a acender (como no hero), para a luz
+  // poder se apagar cor por cor de um jeito visível.
+  const focus = useTransform(progress, [TUNNEL_FROM * 0.5, peaks[0], OUTRO_FROM - 0.02, OUTRO_FROM], [0, 1, 1, 0]);
   const outro = useTransform(progress, [OUTRO_FROM, 1], [0, 1]);
 
   // Quanto mais rápido o scroll, mais o vidro separa a luz nas bordas.
@@ -164,7 +166,12 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
         {geometry && (
           <PrismBeam geometry={geometry} currentHue={hue} focus={focus} animateIn={animateIn} pulse={active} outro={outro} />
         )}
-        {geometry && <Pyramid3D geometry={geometry} outro={outro} />}
+        {/* Perspectiva própria, mais distante que a do túnel: menos distorção, a pirâmide não "incha" ao girar */}
+        {geometry && (
+          <div className="pointer-events-none absolute inset-0" style={{ perspective: `${PYRAMID_PERSPECTIVE}px` }}>
+            <Pyramid3D geometry={geometry} outro={outro} />
+          </div>
+        )}
 
         <motion.div style={{ opacity: chromeOpacity }} className="pointer-events-none absolute inset-x-0 top-6 z-30 sm:top-8">
           <motion.p

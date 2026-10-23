@@ -1,5 +1,5 @@
 import { motion, useAnimate, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 // Faixas do espectro que saem do prisma, como na capa do Dark Side of the Moon (vermelho em cima).
 const BANDS = [25, 55, 95, 145, 200, 255, 300];
@@ -18,6 +18,21 @@ export const INTRO = {
  * para a direita, o arco-íris some e, a partir deste ponto, o triângulo vira a pirâmide 3D.
  */
 export const PRISM_3D_FROM = 0.45;
+
+/*
+ * Ótica do apagar da luz. Quando a fonte desliga, a luz já emitida continua viajando:
+ * o fim do feixe avança à velocidade da luz. No vidro a luz anda a c/n, e o índice n
+ * cresce do vermelho para o violeta (dispersão normal; no vidro BK7, ~1,513 a 700 nm e
+ * ~1,531 a 400 nm). Então o fim do feixe atravessa o prisma mais devagar, o vermelho
+ * termina de sair primeiro e o violeta por último; fora do vidro, todas as cores voltam
+ * à mesma velocidade. A diferença real (~1%) é exagerada aqui, como o próprio leque.
+ */
+/** Tudo apagado antes de o triângulo virar a pirâmide. */
+const LIGHT_OFF_END = 0.42;
+/** A borda do fim do feixe não é um corte seco: espalha um pouco (difração). */
+const TAIL_SOFT = 70;
+/** Índice de refração exagerado de cada faixa, do vermelho (1,5) ao violeta. */
+const glassIndex = (band: number) => 1.5 + band * 0.15;
 
 export interface PrismGeometry {
   /** Tamanho do palco em px */
@@ -47,6 +62,24 @@ export function prismShape({ width: W, height: H, cx, cy, isMobile }: PrismGeome
   };
 }
 
+/** Perspectiva própria da pirâmide 3D (mais distante que a do túnel: menos distorção). */
+export const PYRAMID_PERSPECTIVE = 2600;
+
+/**
+ * Onde fica o vértice da pirâmide (arestas iguais ao lado do triângulo) vista de frente,
+ * na altura dos olhos: a aresta da frente da base fica no plano da tela, então o vértice
+ * está meio lado para trás e a perspectiva o puxa um pouco para o centro do palco.
+ * O triângulo 2D desce até aqui antes de virar a pirâmide, para a troca não ter salto.
+ */
+export function pyramidFrontApex(geometry: PrismGeometry): Point {
+  const { side, left } = prismShape(geometry);
+  const height = side / Math.SQRT2;
+  const k = PYRAMID_PERSPECTIVE / (PYRAMID_PERSPECTIVE + side / 2);
+  const ox = geometry.width / 2;
+  const oy = geometry.height / 2;
+  return { x: ox + (geometry.cx - ox) * k, y: oy + (left.y - height - oy) * k };
+}
+
 const lerp = (a: Point, b: Point, t: number): Point => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
 const pts = (...points: Point[]) => points.map((p) => `${p.x},${p.y}`).join(" ");
 
@@ -72,6 +105,33 @@ function Band({ hue, points, currentHue, focus }: BandProps) {
   return <motion.polygon points={points} fill={`url(#band-${hue})`} style={{ opacity }} />;
 }
 
+interface TailMaskProps {
+  id: string;
+  outro: MotionValue<number>;
+  /** Posição (px) do ponto a partir do qual a luz ainda está acesa, em função do encerramento */
+  position: (o: number) => number;
+  W: number;
+  H: number;
+}
+
+/**
+ * Máscara do fim do feixe: tudo à esquerda da posição fica apagado, com uma transição
+ * suave de TAIL_SOFT px. A posição avança com o encerramento, na velocidade da luz daquele meio.
+ */
+function TailMask({ id, outro, position, W, H }: TailMaskProps) {
+  const positionRef = useRef(position);
+  useLayoutEffect(() => {
+    positionRef.current = position;
+  });
+  const x = useTransform(outro, (o) => positionRef.current(o));
+
+  return (
+    <mask id={id} maskUnits="userSpaceOnUse" x={-W} y={0} width={W * 3} height={H}>
+      <motion.rect x={-TAIL_SOFT} y={0} width={W * 2 + TAIL_SOFT} height={H} fill="url(#tail-fade)" style={{ x }} />
+    </mask>
+  );
+}
+
 interface PrismBeamProps {
   geometry: PrismGeometry;
   currentHue: MotionValue<number>;
@@ -89,11 +149,6 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
   // O triângulo do SVG sai de cena quando a pirâmide 3D assume o lugar dele
   const prismOpacity = useTransform([focus, outro], ([f, o]: number[]) => (o >= PRISM_3D_FROM ? 0 : 1 - f * 0.3));
 
-  // A luz se apaga como se a fonte desligasse: o fim do feixe viaja até o prisma,
-  // atravessa o vidro e depois o arco-íris some saindo da face para a direita.
-  const beamTail = useTransform(outro, [0, 0.22], [1, 0]);
-  const innerLight = useTransform([beamOpacity, outro], ([b, o]: number[]) => b * Math.min(1, Math.max(0, (0.26 - o) / 0.08)));
-  const fanTail = useTransform(outro, [0.24, 0.55], [1, 0]);
   const reduce = useReducedMotion();
   const [scope, animate] = useAnimate<SVGGElement>();
 
@@ -121,15 +176,44 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
     const b = lerp(right, top, 0.5 - (j + 1) * bandStep);
     const exitTop = { x: W, y: a.y + (W - a.x) * (0.1 + j * bandSpread) };
     const exitBottom = { x: W, y: b.y + (W - b.x) * (0.1 + (j + 1) * bandSpread) };
-    return { hue, points: pts(a, b, exitBottom, exitTop) };
+    return { hue, a, b, points: pts(a, b, exitBottom, exitTop) };
   });
   const exitTop = lerp(right, top, 0.5);
   const exitBottom = lerp(right, top, 0.5 - BANDS.length * bandStep);
 
   const triangle = `M${top.x} ${top.y} L${right.x} ${right.y} L${left.x} ${left.y} Z`;
+  // Antes da troca, o vértice desce até a vista frontal da pirâmide 3D
+  const apexTarget = pyramidFrontApex(geometry);
+  const morph = useRef({ top, left, right, apexTarget });
+  useLayoutEffect(() => {
+    morph.current = { top, left, right, apexTarget };
+  });
+  const triangleD = useTransform(outro, (o) => {
+    const m = morph.current;
+    const t = Math.min(1, Math.max(0, (o - 0.3) / (PRISM_3D_FROM - 0.3)));
+    const apex = lerp(m.top, m.apexTarget, t);
+    return `M${apex.x} ${apex.y} L${m.right.x} ${m.right.y} L${m.left.x} ${m.left.y} Z`;
+  });
   // A revelação começa à esquerda de todas as faixas: a face é inclinada, e começar no ponto
   // mais à direita cortava o início das faixas numa linha vertical em vez de seguir a face.
   const fanX = Math.min(exitTop.x, exitBottom.x) - 2;
+
+  // Velocidade da luz no ar (px por unidade de encerramento), calculada para o violeta, o
+  // último a sair, terminar de passar pela borda da tela em LIGHT_OFF_END.
+  const last = bands[bands.length - 1];
+  const c = (entry.x + (last.a.x - entry.x) * glassIndex(bands.length - 1) + (W - last.a.x) + TAIL_SOFT) / LIGHT_OFF_END;
+  // O fim do feixe chega à face de entrada neste momento
+  const atEntry = entry.x / c;
+  const tails = bands.map((band, j) => {
+    const n = glassIndex(j);
+    // Dentro do vidro o fim do feixe anda a c/n; ao chegar na face de saída, volta a c
+    const leaves = atEntry + ((band.a.x - entry.x) * n) / c;
+    return {
+      // Continua além da face de saída para a borda suave terminar de passar pela cunha
+      inside: (o: number) => entry.x + Math.max(0, o - atEntry) * (c / n),
+      outside: (o: number) => band.a.x + Math.max(0, o - leaves) * c,
+    };
+  });
 
   return (
     <svg
@@ -167,13 +251,19 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
             transition={{ duration: 0.65, delay: INTRO.beam, ease: [0.55, 0, 0.9, 0.6] }}
           />
         </clipPath>
-        {/* Encerramento: as duas máscaras encolhem para a direita, apagando a luz */}
-        <clipPath id="beam-outro">
-          <motion.rect x="0" y="0" width={entry.x} height={H} style={{ scaleX: beamTail, originX: 1 }} />
-        </clipPath>
-        <clipPath id="fan-outro">
-          <motion.rect x={fanX} y="0" width={W - fanX} height={H} style={{ scaleX: fanTail, originX: 1 }} />
-        </clipPath>
+        {/* Encerramento: o fim do feixe viajando pelo ar, pelo vidro e de novo pelo ar */}
+        <linearGradient id="tail-fade" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#000" />
+          <stop offset={TAIL_SOFT / (W * 2 + TAIL_SOFT)} stopColor="#fff" />
+          <stop offset="1" stopColor="#fff" />
+        </linearGradient>
+        <TailMask id="tail-beam" outro={outro} position={(o) => o * c} W={W} H={H} />
+        {tails.map((tail, j) => (
+          <TailMask key={`in-${j}`} id={`tail-in-${j}`} outro={outro} position={tail.inside} W={W} H={H} />
+        ))}
+        {tails.map((tail, j) => (
+          <TailMask key={`out-${j}`} id={`tail-out-${j}`} outro={outro} position={tail.outside} W={W} H={H} />
+        ))}
         <clipPath id="fan-reveal">
           <motion.rect
             x={fanX}
@@ -191,14 +281,14 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
         <g ref={scope}>
           <g className={pulse >= 0 ? "prism-hum" : undefined}>
             <motion.path
-              d={triangle}
+              d={triangleD}
               fill="url(#prism-fill)"
               initial={animateIn ? { fillOpacity: 0 } : false}
               animate={{ fillOpacity: 1 }}
               transition={{ duration: 1, delay: INTRO.triangle + 0.8 }}
             />
             <motion.path
-              d={triangle}
+              d={triangleD}
               fill="none"
               style={{ stroke: "oklch(0.85 var(--c, 0) var(--h, 0))" }}
               strokeOpacity={0.55}
@@ -210,7 +300,7 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
               transition={{ duration: 1.3, delay: INTRO.triangle, ease: [0.65, 0, 0.35, 1] }}
             />
             <motion.path
-              d={triangle}
+              d={triangleD}
               fill="none"
               style={{ stroke: "oklch(0.95 calc(var(--c, 0) * 0.6) var(--h, 0))" }}
               strokeOpacity={0.95}
@@ -227,30 +317,34 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
       </motion.g>
 
       {/* Feixe branco até a face esquerda */}
-      <g clipPath="url(#beam-outro)">
+      <g mask="url(#tail-beam)">
         <motion.g style={{ opacity: beamOpacity }} clipPath="url(#beam-reveal)">
           <line x1={beamStart.x} y1={beamStart.y} x2={entry.x} y2={entry.y} stroke="url(#beam-in)" strokeWidth={7} filter="url(#soft-glow)" opacity={0.5} />
           <line x1={beamStart.x} y1={beamStart.y} x2={entry.x} y2={entry.y} stroke="url(#beam-in)" strokeWidth={2} />
         </motion.g>
       </g>
 
-      {/* Luz atravessando o vidro */}
-      <motion.polygon
-        points={pts(lerp(left, top, 0.545), lerp(left, top, 0.555), exitTop, exitBottom)}
-        fill="#fff"
-        style={{ opacity: innerLight }}
-        initial={animateIn ? { fillOpacity: 0 } : false}
-        animate={{ fillOpacity: 0.22 }}
-        transition={{ duration: 0.35, delay: INTRO.beam + 0.6 }}
-      />
+      {/* Luz atravessando o vidro: um leque estreito por cor, que somado parece branco perto da entrada */}
+      <motion.g style={{ opacity: beamOpacity }}>
+        <motion.g initial={animateIn ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={{ duration: 0.35, delay: INTRO.beam + 0.6 }}>
+          {bands.map((band, j) => (
+            <polygon
+              key={band.hue}
+              points={pts(entry, band.a, band.b)}
+              fill={`oklch(0.92 0.08 ${band.hue} / 0.09)`}
+              mask={`url(#tail-in-${j})`}
+            />
+          ))}
+        </motion.g>
+      </motion.g>
 
       {/* Espectro saindo pela face direita */}
-      <g clipPath="url(#fan-outro)">
-        <g clipPath="url(#fan-reveal)">
-          {bands.map((band) => (
-            <Band key={band.hue} hue={band.hue} points={band.points} currentHue={currentHue} focus={focus} />
-          ))}
-        </g>
+      <g clipPath="url(#fan-reveal)">
+        {bands.map((band, j) => (
+          <g key={band.hue} mask={`url(#tail-out-${j})`}>
+            <Band hue={band.hue} points={band.points} currentHue={currentHue} focus={focus} />
+          </g>
+        ))}
       </g>
     </svg>
   );
