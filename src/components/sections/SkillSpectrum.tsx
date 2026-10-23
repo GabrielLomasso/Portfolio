@@ -24,7 +24,9 @@ export function SkillSpectrum() {
   // Estado do desenho fica em refs para o loop não depender de re-render
   const pointerX = useRef<number | null>(null);
   const activeRef = useRef(active);
-  activeRef.current = active;
+  useEffect(() => {
+    activeRef.current = active;
+  }, [active]);
   const drawRef = useRef<((time: number) => void) | null>(null);
 
   // Sem interação, a faixa ativa vai passando sozinha

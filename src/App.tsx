@@ -1,20 +1,13 @@
+import { lazy, Suspense } from "react";
 import { SpectrumHero } from "@/components/portfolio/SpectrumHero";
-import { BeforeAfter } from "@/components/sections/BeforeAfter";
-import { Changelog } from "@/components/sections/Changelog";
 import { CommandPalette } from "@/components/sections/CommandPalette";
-import { Contact } from "@/components/sections/Contact";
-import { Faq } from "@/components/sections/Faq";
-import { Lab } from "@/components/sections/Lab";
-import { Manifesto } from "@/components/sections/Manifesto";
-import { PrismLab } from "@/components/sections/PrismLab";
-import { Process } from "@/components/sections/Process";
 import { ScrollProgress } from "@/components/sections/ScrollProgress";
-import { SkillSpectrum } from "@/components/sections/SkillSpectrum";
-import { SystemPanel } from "@/components/sections/SystemPanel";
-import { Tracklist } from "@/components/sections/Tracklist";
 import { PROJECTS } from "@/data/projects";
 
 const VISIBLE_PROJECTS = PROJECTS.filter((p) => !p.hidden);
+
+// Seções abaixo do hero num pedaço separado: a abertura carrega primeiro
+const NewSections = lazy(() => import("@/components/sections/NewSections"));
 
 export default function App() {
   return (
@@ -22,17 +15,9 @@ export default function App() {
       <ScrollProgress />
       <CommandPalette />
       <SpectrumHero projects={VISIBLE_PROJECTS} />
-      <Manifesto />
-      <SkillSpectrum />
-      <Process />
-      <BeforeAfter />
-      <Lab />
-      <PrismLab />
-      <SystemPanel />
-      <Tracklist />
-      <Changelog />
-      <Faq />
-      <Contact />
+      <Suspense fallback={<div className="min-h-svh" aria-hidden />}>
+        <NewSections />
+      </Suspense>
       <footer className="flex flex-col items-center justify-between gap-2 border-t border-line px-6 py-10 font-mono text-[11px] uppercase tracking-[0.2em] text-muted sm:flex-row">
         <span>Gabriel Fajardo</span>
         <span>Belo Horizonte · {new Date().getFullYear()}</span>

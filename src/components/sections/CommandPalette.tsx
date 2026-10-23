@@ -61,7 +61,13 @@ export function CommandPalette() {
     const onKey = (e: globalThis.KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setOpen((v) => !v);
+        setOpen((v) => {
+          if (!v) {
+            setQuery("");
+            setIndex(0);
+          }
+          return !v;
+        });
       } else if (e.key === "Escape") {
         setOpen(false);
       }
@@ -70,12 +76,15 @@ export function CommandPalette() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Abrir sempre começa do zero: busca vazia e primeiro item selecionado
+  const openPalette = () => {
+    setQuery("");
+    setIndex(0);
+    setOpen(true);
+  };
+
   useEffect(() => {
-    if (open) {
-      setQuery("");
-      setIndex(0);
-      requestAnimationFrame(() => inputRef.current?.focus());
-    }
+    if (open) requestAnimationFrame(() => inputRef.current?.focus());
   }, [open]);
 
   useEffect(() => {
@@ -108,7 +117,7 @@ export function CommandPalette() {
       {/* Só aparece depois da abertura do hero, que começa com a tela toda preta */}
       <motion.button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={openPalette}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 6.4 }}

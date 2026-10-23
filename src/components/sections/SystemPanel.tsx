@@ -16,10 +16,7 @@ function useCountUp(target: number, run: boolean, duration = 1400) {
   const [value, setValue] = useState(reduce ? target : 0);
 
   useEffect(() => {
-    if (!run || reduce) {
-      if (reduce) setValue(target);
-      return;
-    }
+    if (!run || reduce) return;
     let raf = 0;
     const start = performance.now();
     const tick = (now: number) => {
