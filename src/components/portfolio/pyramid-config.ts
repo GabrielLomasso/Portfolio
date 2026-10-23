@@ -19,12 +19,12 @@ export const PYRAMID = {
    */
   perspectiva: 0,
   /** Quanto ela gira até sair da tela, em graus. Negativo gira para a esquerda. */
-  giro: -360,
+  giro: -270,
   /**
    * Parte do giro feita parada no lugar, antes de começar a andar para a esquerda (0 a 1).
    * 0 = já sai andando; 0.3 = gira 30% do caminho no lugar e depois sai.
    */
-  paradaNoLugar: 0.25,
+  paradaNoLugar: 0.2,
   /** Quanto ela anda além da borda esquerda, em lados da pirâmide (abaixo de 0.75 ela não some inteira). */
   saida: 0.9,
   /**
