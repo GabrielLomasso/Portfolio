@@ -38,12 +38,18 @@ Fontes:
 | Terminal | Um terminal que aceita comandos (`ajuda`, `projetos`, `stack`, `contato`...) | Jordan Cruz-Correa (Windows 98 funcional), Robby Leonardi (currículo como jogo) |
 | Lado A / Lado B | Trajetória como a contracapa de um disco: faixas com "duração" em anos | Jerald (toca-discos para navegar), André Souza (vitrolas arrastáveis), ligação com a capa do Dark Side |
 | Contato | Chamada grande, e-mail que copia com um clique, formulário com validação que monta a mensagem para o WhatsApp, relógio de BH ao vivo | Brittany Chiang (contato direto e honesto), Joe Stanford (clareza), padrão de "copy to clipboard" |
+| Do rascunho ao ar | Comparador arrastável: wireframe anotado do primeiro dia x site do Thaylor no ar | Discover Design e Diana Lu (mostrar o processo, não só o resultado), padrão before/after |
+| Brinque com a luz | Prisma com física real (Snell + dispersão de Cauchy + reflexão interna total), lanterna arrastável | Dorian Lods e Dion Pieters (refração e shaders reagindo ao usuário), Merodev (visual gerado em código); a ligação com o prisma do Pink Floyd veio do próprio site |
+| Este site, commit a commit | O histórico real do Git deste portfólio num grafo animado | Brittany Chiang (acesso às versões antigas do site), Michael Mannucci (mostrar a própria stack) |
+| Perguntas frequentes | As dúvidas de todo cliente, com um mini prisma que solta o espectro ao abrir | Nick Stepuk (seção de filosofia de trabalho), Joe Stanford (treinar o cliente) |
 
 Extras globais, só por inclusão:
 
 - **Barra de progresso em espectro** no topo da página.
 - **Paleta de comandos (Ctrl+K)** para pular entre seções, como em ferramentas de desenvolvedor.
 - **Luz que segue o cursor** nas seções novas (Brittany Chiang, Stephane Willems).
+- **Som opcional no analisador**: com o botão ligado, o espectro vira um teremim (Web Audio API). Nunca toca sozinho.
+- **Easter egg**: digitar "prisma" na página faz o espectro varrer a tela; no terminal, o comando `pinkfloyd`.
 
 ## Lista completa dos portfólios avaliados
 
