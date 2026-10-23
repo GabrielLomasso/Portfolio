@@ -202,6 +202,8 @@ export function SkillSpectrum() {
                 )}
                 style={{ borderColor: i === active ? `oklch(0.78 0.19 ${b.hue})` : undefined }}
               >
+                {/* Amostra da cor da faixa: no celular os rótulos quebram em duas linhas e saem de baixo das barras */}
+                <span aria-hidden className="mr-1.5 inline-block size-1.5 rounded-full align-middle" style={{ background: `oklch(0.75 0.17 ${b.hue})` }} />
                 {b.label}
               </button>
             ))}

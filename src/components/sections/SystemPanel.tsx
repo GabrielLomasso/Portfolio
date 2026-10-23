@@ -52,12 +52,12 @@ function MetricTile({ metric, index, run }: { metric: (typeof METRICS)[number]; 
   const hue = [150, 200, 95, 300][index % 4];
 
   return (
-    <div className="rounded-2xl border border-line bg-white/[0.02] p-5 lg:col-span-3">
-      <p className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+    <div className="rounded-2xl border border-line bg-white/[0.02] p-4 sm:p-5 lg:col-span-3">
+      <p className="flex items-start justify-between gap-2 font-mono text-[9px] uppercase tracking-[0.2em] text-muted sm:text-[10px] sm:tracking-[0.25em]">
         {metric.label}
         <span className="size-1.5 rounded-full" style={{ background: `oklch(0.8 0.17 ${hue})`, boxShadow: `0 0 8px oklch(0.8 0.17 ${hue})` }} />
       </p>
-      <p className="mt-3 font-heading text-4xl font-black tabular-nums text-fg">
+      <p className="mt-3 font-heading text-3xl font-black tabular-nums text-fg sm:text-4xl">
         {value.toLocaleString("pt-BR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}
         <span className="text-2xl text-muted">{metric.suffix}</span>
       </p>
@@ -95,7 +95,7 @@ function LiveChart({ live }: { live: boolean }) {
   const current = Math.round(series[series.length - 1] * 3.2);
 
   return (
-    <div className="flex flex-col rounded-2xl border border-line bg-white/[0.02] p-5 sm:col-span-2 lg:col-span-8">
+    <div className="flex flex-col rounded-2xl border border-line bg-white/[0.02] p-5 col-span-2 lg:col-span-8">
       <div className="flex items-center justify-between">
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">Requisições por minuto</p>
         <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em]" style={{ color: GREEN }}>
@@ -107,7 +107,7 @@ function LiveChart({ live }: { live: boolean }) {
         {current}
         <span className="ml-2 font-mono text-xs font-normal text-muted">req/min</span>
       </p>
-      <div className="relative mt-4 h-44 flex-1">
+      <div className="relative mt-4 min-h-44 flex-1">
         {/* Grade de fundo */}
         <div aria-hidden className="absolute inset-0 flex flex-col justify-between">
           {[0, 1, 2, 3].map((i) => (
@@ -165,9 +165,9 @@ function LogStream({ live }: { live: boolean }) {
   }, [live, reduce]);
 
   return (
-    <div className="flex flex-col rounded-2xl border border-line bg-black/60 p-5 sm:col-span-2 lg:col-span-4">
+    <div className="flex flex-col rounded-2xl border border-line bg-black/60 p-5 col-span-2 lg:col-span-4">
       <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">Log</p>
-      <ul className="mt-3 flex flex-1 flex-col justify-end gap-1.5 overflow-hidden font-mono text-[11px] leading-snug">
+      <ul className="mt-3 flex h-56 flex-1 flex-col justify-end gap-1.5 overflow-hidden font-mono text-[11px] leading-snug lg:h-auto">
         {entries.map((entry) => (
           <motion.li key={entry.id} initial={reduce ? false : { opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} className="flex gap-2">
             <span className="shrink-0 text-muted/70">{entry.time}</span>
@@ -289,7 +289,7 @@ function Terminal() {
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-black sm:col-span-2 lg:col-span-12" onClick={() => inputRef.current?.focus()}>
+    <div className="overflow-hidden rounded-2xl border border-line bg-black col-span-2 lg:col-span-12" onClick={() => inputRef.current?.focus()}>
       <div className="flex items-center gap-2 border-b border-line px-4 py-2.5">
         <span className="size-2.5 rounded-full bg-[oklch(0.65_0.2_25)]" />
         <span className="size-2.5 rounded-full bg-[oklch(0.82_0.16_85)]" />
@@ -339,7 +339,7 @@ export function SystemPanel() {
           intro="No estilo dos painéis que eu monto para os clientes: números do mês, tráfego ao vivo e o log do que está acontecendo. E um terminal, para quem gosta de digitar."
         />
 
-        <div ref={ref} className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-12">
+        <div ref={ref} className="mt-14 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-12">
           {METRICS.map((metric, i) => (
             <MetricTile key={metric.label} metric={metric} index={i} run={inView} />
           ))}

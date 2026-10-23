@@ -27,7 +27,7 @@ function Block({ x, y, w, h, solid = false, round = false }: { x: number; y: num
 /** Anotação em mono, como as notas que eu deixo no wireframe para o cliente. */
 function Note({ x, y, children }: { x: number; y: number; children: string }) {
   return (
-    <span className="absolute font-mono text-[8px] uppercase tracking-wider sm:text-[10px]" style={{ left: `${x}%`, top: `${y}%`, color: NOTE }}>
+    <span className="absolute hidden font-mono text-[9px] uppercase tracking-wider sm:block sm:text-[10px]" style={{ left: `${x}%`, top: `${y}%`, color: NOTE }}>
       {children}
     </span>
   );
