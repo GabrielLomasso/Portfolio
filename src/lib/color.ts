@@ -1,7 +1,7 @@
 /*
- * Cores saturadas para as faixas do arco-íris. Croma fixo deixa cada matiz com uma
- * saturação diferente (o vermelho claro vira salmão); aqui cada matiz usa o croma máximo
- * que a tela (sRGB) consegue mostrar, numa luminosidade perto do ponto mais saturado dele.
+ * Cores das faixas do arco-íris. Croma fixo deixa cada matiz com uma
+ * saturação diferente (o vermelho claro vira salmão); aqui cada matiz parte do croma máximo
+ * que a tela (sRGB) consegue mostrar, perto do ponto mais saturado dele, suavizado no fim.
  */
 
 const RAD = Math.PI / 180;
@@ -52,9 +52,16 @@ export function vivid(h: number) {
   return best;
 }
 
-/** Cor da faixa; `shade` < 1 escurece mantendo o matiz saturado */
+/**
+ * Meio-termo entre a cor mais viva e o tom claro de antes (luminosidade 0,8 e croma 0,2):
+ * mais cor que o salmão, sem o destaque exagerado do croma máximo.
+ */
+const SOFT = { l: 0.8, c: 0.2 };
+
+/** Cor da faixa; `shade` < 1 escurece mantendo o matiz */
 export function vividColor(h: number, shade = 1) {
-  const { l } = vivid(h);
-  const dark = l * shade;
-  return `oklch(${dark.toFixed(3)} ${(maxChroma(dark, h) * 0.98).toFixed(3)} ${h})`;
+  const peak = vivid(h);
+  const l = ((peak.l + SOFT.l) / 2) * shade;
+  const c = Math.min((peak.c + SOFT.c) / 2, maxChroma(l, h) * 0.98);
+  return `oklch(${l.toFixed(3)} ${c.toFixed(3)} ${h})`;
 }
