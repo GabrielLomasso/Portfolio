@@ -1,4 +1,4 @@
-import { motion, useAnimate, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
+import { animate as animateValue, motion, useAnimate, useMotionValue, useMotionValueEvent, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { Lamp } from "./Lamp";
 
@@ -17,10 +17,14 @@ export const INTRO = {
 /**
  * Encerramento do hero (progresso 0–1 depois da última cor): a luz se apaga da esquerda
  * para a direita e, junto com ela, o nome some e o triângulo começa a falhar como uma
- * lâmpada velha, até apagar logo depois de a luz sair da tela.
+ * lâmpada velha. Quando o nome e a luz terminam de sair, ele ainda pisca LAMP_TAIL segundos
+ * e só então apaga de vez.
  */
 export const LAMP_START = 0.05;
-export const LAMP_END = 0.45;
+/** Segundos que o triângulo continua piscando depois de o nome e o arco-íris sumirem */
+const LAMP_TAIL = 0.7;
+/** Estágio da lâmpada quando o nome e a luz terminam de sair; o resto acontece em LAMP_TAIL */
+const LAMP_AT_LIGHT_OFF = 0.85;
 
 /*
  * Ótica do apagar da luz. Quando a fonte desliga, a luz já emitida continua viajando:
@@ -126,14 +130,38 @@ interface PrismBeamProps {
   pulse: number;
   /** Progresso do encerramento do hero (0 até a última cor, 1 com a tela preta) */
   outro: MotionValue<number>;
+  /** Chamado quando o triângulo apaga de vez (true) ou volta a acender ao rolar para cima (false) */
+  onLampOff?: (off: boolean) => void;
 }
 
 /** Triângulo de vidro atrás do nome: o feixe branco entra pela face esquerda e sai em espectro pela direita. */
-export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro }: PrismBeamProps) {
+export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro, onLampOff }: PrismBeamProps) {
   const beamOpacity = useTransform(focus, [0, 1], [1, 0.35]);
   const prismOpacity = useTransform(focus, [0, 1], [1, 0.7]);
-  // Quanto a lâmpada do triângulo já morreu: anda junto com a luz saindo da tela
-  const lampDecay = useTransform(outro, [LAMP_START, LAMP_END], [0, 1]);
+
+  // Quanto a lâmpada do triângulo já morreu: anda junto com a luz saindo da tela e, depois
+  // que ela sai, termina de morrer no tempo, em LAMP_TAIL segundos.
+  const scrollDecay = useTransform(outro, [LAMP_START, LIGHT_OFF_END], [0, LAMP_AT_LIGHT_OFF]);
+  const tail = useMotionValue(0);
+  const lampDecay = useTransform([scrollDecay, tail], ([s, t]: number[]) => s + t * (1 - LAMP_AT_LIGHT_OFF));
+  const lightGone = useRef(false);
+  const tailControls = useRef<ReturnType<typeof animateValue> | null>(null);
+  useMotionValueEvent(outro, "change", (o) => {
+    const gone = o >= LIGHT_OFF_END;
+    if (gone === lightGone.current) return;
+    lightGone.current = gone;
+    tailControls.current?.stop();
+    if (gone) {
+      tailControls.current = animateValue(tail, 1, {
+        duration: reduce ? 0 : LAMP_TAIL,
+        ease: "linear",
+        onComplete: () => onLampOff?.(true),
+      });
+    } else {
+      tail.set(0);
+      onLampOff?.(false);
+    }
+  });
 
   const reduce = useReducedMotion();
   const [scope, animate] = useAnimate<SVGGElement>();

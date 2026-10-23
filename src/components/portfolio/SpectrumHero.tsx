@@ -20,7 +20,7 @@ import {
   useTunnelStage,
 } from "@/components/ui/perspective-tunnel";
 import { ChoiceButtons, ExploreOverlay, type ExploreMode } from "./Explore";
-import { INTRO, LAMP_END, LAMP_START, LIGHT_OFF_END, PrismBeam, prismShape, type PrismGeometry } from "./PrismBeam";
+import { INTRO, LAMP_START, LIGHT_OFF_END, PrismBeam, prismShape, type PrismGeometry } from "./PrismBeam";
 import { ProjectCard } from "./ProjectCard";
 import { SpectrumRail } from "./SpectrumRail";
 
@@ -132,7 +132,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
   // Voltando a rolar para cima, ele reacende e elas somem.
   const [choiceReady, setChoiceReady] = useState(false);
   const [explore, setExplore] = useState<ExploreMode | null>(null);
-  useMotionValueEvent(outro, "change", (o) => setChoiceReady(o >= LAMP_END));
+
 
   const sectionHeight = `${100 + VH_PER_PROJECT / step}svh`;
   const current = active >= 0 ? projects[active] : null;
@@ -178,6 +178,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
             animateIn={animateIn}
             pulse={active}
             outro={outro}
+            onLampOff={setChoiceReady}
           />
         )}
         <ChoiceButtons visible={choiceReady && explore === null} onPick={setExplore} />
