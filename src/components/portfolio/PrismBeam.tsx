@@ -18,6 +18,8 @@ export const INTRO = {
  * para a direita, o arco-íris some e, a partir deste ponto, o triângulo vira a pirâmide 3D.
  */
 export const PRISM_3D_FROM = 0.45;
+/** Duração do fade entre o triângulo plano e a pirâmide (em unidades do encerramento). */
+export const PRISM_FADE = 0.06;
 
 /*
  * Ótica do apagar da luz. Quando a fonte desliga, a luz já emitida continua viajando:
@@ -64,21 +66,6 @@ export function prismShape({ width: W, height: H, cx, cy, isMobile }: PrismGeome
 
 /** Perspectiva própria da pirâmide 3D (mais distante que a do túnel: menos distorção). */
 export const PYRAMID_PERSPECTIVE = 2600;
-
-/**
- * Onde fica o vértice da pirâmide (arestas iguais ao lado do triângulo) vista de frente,
- * na altura dos olhos: a aresta da frente da base fica no plano da tela, então o vértice
- * está meio lado para trás e a perspectiva o puxa um pouco para o centro do palco.
- * O triângulo 2D desce até aqui antes de virar a pirâmide, para a troca não ter salto.
- */
-export function pyramidFrontApex(geometry: PrismGeometry): Point {
-  const { side, left } = prismShape(geometry);
-  const height = side / Math.SQRT2;
-  const k = PYRAMID_PERSPECTIVE / (PYRAMID_PERSPECTIVE + side / 2);
-  const ox = geometry.width / 2;
-  const oy = geometry.height / 2;
-  return { x: ox + (geometry.cx - ox) * k, y: oy + (left.y - height - oy) * k };
-}
 
 const lerp = (a: Point, b: Point, t: number): Point => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
 const pts = (...points: Point[]) => points.map((p) => `${p.x},${p.y}`).join(" ");
@@ -147,7 +134,10 @@ interface PrismBeamProps {
 export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro }: PrismBeamProps) {
   const beamOpacity = useTransform(focus, [0, 1], [1, 0.35]);
   // O triângulo do SVG sai de cena quando a pirâmide 3D assume o lugar dele
-  const prismOpacity = useTransform([focus, outro], ([f, o]: number[]) => (o >= PRISM_3D_FROM ? 0 : 1 - f * 0.3));
+  const prismOpacity = useTransform([focus, outro], ([f, o]: number[]) => {
+    const handOff = Math.min(1, Math.max(0, (o - PRISM_3D_FROM) / PRISM_FADE));
+    return (1 - f * 0.3) * (1 - handOff);
+  });
 
   const reduce = useReducedMotion();
   const [scope, animate] = useAnimate<SVGGElement>();
@@ -182,18 +172,6 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
   const exitBottom = lerp(right, top, 0.5 - BANDS.length * bandStep);
 
   const triangle = `M${top.x} ${top.y} L${right.x} ${right.y} L${left.x} ${left.y} Z`;
-  // Antes da troca, o vértice desce até a vista frontal da pirâmide 3D
-  const apexTarget = pyramidFrontApex(geometry);
-  const morph = useRef({ top, left, right, apexTarget });
-  useLayoutEffect(() => {
-    morph.current = { top, left, right, apexTarget };
-  });
-  const triangleD = useTransform(outro, (o) => {
-    const m = morph.current;
-    const t = Math.min(1, Math.max(0, (o - 0.3) / (PRISM_3D_FROM - 0.3)));
-    const apex = lerp(m.top, m.apexTarget, t);
-    return `M${apex.x} ${apex.y} L${m.right.x} ${m.right.y} L${m.left.x} ${m.left.y} Z`;
-  });
   // A revelação começa à esquerda de todas as faixas: a face é inclinada, e começar no ponto
   // mais à direita cortava o início das faixas numa linha vertical em vez de seguir a face.
   const fanX = Math.min(exitTop.x, exitBottom.x) - 2;
@@ -281,14 +259,14 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
         <g ref={scope}>
           <g className={pulse >= 0 ? "prism-hum" : undefined}>
             <motion.path
-              d={triangleD}
+              d={triangle}
               fill="url(#prism-fill)"
               initial={animateIn ? { fillOpacity: 0 } : false}
               animate={{ fillOpacity: 1 }}
               transition={{ duration: 1, delay: INTRO.triangle + 0.8 }}
             />
             <motion.path
-              d={triangleD}
+              d={triangle}
               fill="none"
               style={{ stroke: "oklch(0.85 var(--c, 0) var(--h, 0))" }}
               strokeOpacity={0.55}
@@ -300,7 +278,7 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
               transition={{ duration: 1.3, delay: INTRO.triangle, ease: [0.65, 0, 0.35, 1] }}
             />
             <motion.path
-              d={triangleD}
+              d={triangle}
               fill="none"
               style={{ stroke: "oklch(0.95 calc(var(--c, 0) * 0.6) var(--h, 0))" }}
               strokeOpacity={0.95}
