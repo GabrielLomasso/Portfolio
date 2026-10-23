@@ -104,16 +104,20 @@ export function CommandPalette() {
 
   return (
     <>
-      <button
+      {/* Só aparece depois da abertura do hero, que começa com a tela toda preta */}
+      <motion.button
         type="button"
         onClick={() => setOpen(true)}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 6.4 }}
         className="fixed bottom-5 left-5 z-50 hidden items-center gap-2 rounded-full border border-white/10 bg-black/70 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted backdrop-blur transition-colors hover:border-white/30 hover:text-fg md:flex"
         aria-label="Abrir a paleta de comandos"
       >
         <kbd className="rounded border border-white/15 px-1.5 py-0.5 text-[9px]">Ctrl</kbd>
         <kbd className="rounded border border-white/15 px-1.5 py-0.5 text-[9px]">K</kbd>
         Navegar
-      </button>
+      </motion.button>
 
       <AnimatePresence>
         {open && (
