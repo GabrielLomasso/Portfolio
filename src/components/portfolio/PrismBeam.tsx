@@ -22,7 +22,7 @@ export const INTRO = {
  */
 export const LAMP_START = 0.05;
 /** Segundos que o triângulo continua piscando depois de o nome e o arco-íris sumirem */
-const LAMP_TAIL = 0.7;
+const LAMP_TAIL = 1.3;
 /** Estágio da lâmpada quando o nome e a luz terminam de sair; o resto acontece em LAMP_TAIL */
 const LAMP_AT_LIGHT_OFF = 0.85;
 
