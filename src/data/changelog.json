@@ -2,6 +2,54 @@
   "generatedAt": "2026-10-23",
   "commits": [
     {
+      "hash": "9991438",
+      "date": "2026-10-23",
+      "subject": "Botão da paleta some quando o rodapé aparece",
+      "tags": []
+    },
+    {
+      "hash": "0fab2fb",
+      "date": "2026-10-23",
+      "subject": "Docs: pesquisa atualizada e resumo da madrugada",
+      "tags": []
+    },
+    {
+      "hash": "6560aa8",
+      "date": "2026-10-23",
+      "subject": "Easter egg: digitar \"prisma\" faz o espectro varrer a tela",
+      "tags": []
+    },
+    {
+      "hash": "6979b8e",
+      "date": "2026-10-23",
+      "subject": "Seções abaixo do hero em pedaço carregado depois (React.lazy)",
+      "tags": []
+    },
+    {
+      "hash": "ebeca09",
+      "date": "2026-10-23",
+      "subject": "Som opcional no analisador: o espectro vira um teremim",
+      "tags": []
+    },
+    {
+      "hash": "0342457",
+      "date": "2026-10-23",
+      "subject": "Seção Brinque com a luz: prisma com física de verdade",
+      "tags": []
+    },
+    {
+      "hash": "ee988e5",
+      "date": "2026-10-23",
+      "subject": "Botão da paleta de comandos só aparece depois da abertura",
+      "tags": []
+    },
+    {
+      "hash": "3b65163",
+      "date": "2026-10-23",
+      "subject": "Seção Este site, commit a commit: histórico real do Git",
+      "tags": []
+    },
+    {
       "hash": "5552bcd",
       "date": "2026-10-23",
       "subject": "Revisão no celular: painel em 2 colunas, gráfico com altura, rótulos com cor",
