@@ -8,7 +8,7 @@ import {
   useTransform,
   useVelocity,
 } from "framer-motion";
-import { useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { Project } from "@/data/projects";
 import { GlassText } from "@/components/ui/glass-text";
 import {
@@ -17,7 +17,7 @@ import {
   useCameraParallax,
   useTunnelStage,
 } from "@/components/ui/perspective-tunnel";
-import { PrismBeam } from "./PrismBeam";
+import { INTRO, PrismBeam, type PrismGeometry } from "./PrismBeam";
 import { ProjectCard } from "./ProjectCard";
 import { SpectrumRail } from "./SpectrumRail";
 
@@ -33,9 +33,41 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function SpectrumHero({ projects }: { projects: Project[] }) {
   const sectionRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion() ?? false;
   const stage = useTunnelStage();
   const pointer = useCameraParallax(!reduce);
+
+  // A abertura é uma sequência; sempre começa do topo, mesmo recarregando no meio da página.
+  useEffect(() => {
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    window.scrollTo(0, 0);
+  }, []);
+
+  // O triângulo é centralizado no nome, então mede o nome (muda com fonte carregando e resize).
+  const [geometry, setGeometry] = useState<PrismGeometry | null>(null);
+  useLayoutEffect(() => {
+    const stageEl = stageRef.current;
+    const nameEl = nameRef.current;
+    if (!stageEl || !nameEl) return;
+    const measure = () => {
+      const s = stageEl.getBoundingClientRect();
+      const n = nameEl.getBoundingClientRect();
+      setGeometry({
+        width: s.width,
+        height: s.height,
+        cx: n.left - s.left + n.width / 2,
+        cy: n.top - s.top + n.height / 2,
+        isMobile: s.width < 768,
+      });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(stageEl);
+    observer.observe(nameEl);
+    return () => observer.disconnect();
+  }, []);
 
   const windows = useMemo(() => tunnelWindows(projects.length, TUNNEL_FROM, 1, CARD_SPAN), [projects.length]);
   const peaks = useMemo(() => windows.map((w) => w.start + (w.end - w.start) * PEAK), [windows]);
@@ -59,7 +91,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
 
   const nameScale = useTransform(progress, [0, 1], [1, 1.06]);
   const introOpacity = useTransform(progress, [0, TUNNEL_FROM * 0.8], [1, 0]);
-  const glowOpacity = useTransform(focus, [0, 1], [0.12, 0.55]);
+  const glowOpacity = useTransform(focus, [0, 1], [0, 0.55]);
 
   const [active, setActive] = useState(-1);
   useMotionValueEvent(progress, "change", (p) => {
@@ -84,6 +116,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
   return (
     <section ref={sectionRef} style={{ height: sectionHeight }} className="relative">
       <motion.div
+        ref={stageRef}
         className="sticky top-0 flex h-svh w-full items-center justify-center overflow-hidden"
         style={{
           perspective: stage.isMobile ? "900px" : "1200px",
@@ -101,12 +134,15 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
               "radial-gradient(60% 50% at 50% 50%, oklch(0.55 var(--c) var(--h) / 0.55), transparent 70%)",
           }}
         />
-        <div
+        <motion.div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-60 [background-image:radial-gradient(rgb(255_255_255/0.07)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(ellipse_65%_60%_at_50%_50%,#000_30%,transparent_100%)]"
+          initial={animateIn ? { opacity: 0 } : false}
+          animate={{ opacity: 0.6 }}
+          transition={{ duration: 2, delay: INTRO.ui }}
+          className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgb(255_255_255/0.07)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(ellipse_65%_60%_at_50%_50%,#000_30%,transparent_100%)]"
         />
 
-        <PrismBeam currentHue={hue} focus={focus} animateIn={animateIn} />
+        {geometry && <PrismBeam geometry={geometry} currentHue={hue} focus={focus} animateIn={animateIn} />}
 
         <PerspectiveTunnel
           className="pointer-events-none absolute inset-0 [&>*]:pointer-events-auto"
@@ -125,18 +161,20 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
             <motion.p
               initial={animateIn ? { opacity: 0, y: 8 } : false}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.7, ease: EASE }}
-              className="mb-6 font-mono text-[10px] uppercase tracking-[0.35em] text-muted sm:text-xs"
+              transition={{ duration: 0.8, delay: INTRO.ui, ease: EASE }}
+              className="mb-6 font-mono text-[10px] uppercase tracking-[0.35em] text-muted [text-shadow:0_0_6px_#000,0_0_12px_#000] sm:text-xs"
             >
               Portfólio · Belo Horizonte
             </motion.p>
           </motion.div>
 
+          {/* Surge das sombras: sai do preto, desfocado, e ganha luz devagar */}
           <motion.div
+            ref={nameRef}
             style={{ scale: nameScale }}
-            initial={animateIn ? { opacity: 0, filter: "blur(14px)" } : false}
-            animate={{ opacity: 1, filter: "blur(0px)" }}
-            transition={{ duration: 1.2, delay: 0.9, ease: EASE }}
+            initial={animateIn ? { opacity: 0, filter: "blur(18px) brightness(0)" } : false}
+            animate={{ opacity: 1, filter: "blur(0px) brightness(1)" }}
+            transition={{ duration: 2, delay: INTRO.name, ease: [0.33, 0, 0.2, 1] }}
           >
             <GlassText
               lines={["GABRIEL", "FAJARDO"]}
@@ -151,7 +189,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
               <motion.p
                 initial={animateIn ? { opacity: 0, y: 8 } : false}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1.9, ease: EASE }}
+                transition={{ duration: 0.8, delay: INTRO.ui + 0.2, ease: EASE }}
                 className="text-sm text-muted sm:text-base"
               >
                 Sites e sistemas web, do protótipo ao ar.
@@ -187,7 +225,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
           <motion.div
             initial={animateIn ? { opacity: 0 } : false}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 2.2 }}
+            transition={{ duration: 0.8, delay: INTRO.ui + 0.6 }}
             className="flex flex-col items-center gap-3 font-mono text-[10px] uppercase tracking-[0.3em] text-muted"
           >
             <span>Role para ver os projetos</span>
