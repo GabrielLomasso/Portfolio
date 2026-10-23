@@ -266,7 +266,7 @@ function TriangleTube({ top, left, right }: { top: Point; left: Point; right: Po
 function Beam({ geometry, side, visible, xShift }: { geometry: PrismGeometry; side: number; visible: boolean; xShift: number }) {
   const { width: W, height: H } = geometry;
   const { top, left } = prismShape({ ...geometry, cx: W + xShift });
-  const entry = lerp(left, top, 0.3);
+  const entry = lerp(left, top, 0.55);
   const start = { x: 0, y: entry.y + entry.x * 0.12 };
   const run = W - entry.x;
   const inner = `M${entry.x} ${entry.y} L${W} ${entry.y + run * 0.02} L${W} ${entry.y + run * 0.2} Z`;
