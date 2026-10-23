@@ -1,7 +1,7 @@
 import { animate as animateValue, motion, useAnimate, useMotionValue, useMotionValueEvent, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { Lamp } from "./Lamp";
-import { vividColor } from "@/lib/color";
+import { neonColor, vividColor } from "@/lib/color";
 
 // Faixas do espectro que saem do prisma, como na capa do Dark Side of the Moon (vermelho em cima).
 const BANDS = [25, 55, 95, 145, 200, 255, 300];
@@ -92,7 +92,14 @@ function Band({ hue, points, currentHue, focus }: BandProps) {
     return (1 - f) * 0.9 + f * (0.08 + near * 0.92);
   });
 
-  return <motion.polygon points={points} fill={`url(#band-${hue})`} style={{ opacity }} />;
+  // Neon só com a própria cor: um halo largo e um justo, no croma máximo, por baixo da faixa
+  return (
+    <motion.g style={{ opacity }}>
+      <polygon points={points} fill={`url(#band-neon-${hue})`} filter="url(#band-glow-wide)" />
+      <polygon points={points} fill={`url(#band-neon-${hue})`} filter="url(#band-glow)" />
+      <polygon points={points} fill={`url(#band-${hue})`} />
+    </motion.g>
+  );
 }
 
 interface TailMaskProps {
@@ -241,8 +248,20 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro
           <stop offset="0%" stopColor="#fff" stopOpacity="0.06" />
           <stop offset="100%" stopColor="#fff" stopOpacity="0.01" />
         </linearGradient>
+        {BANDS.map((hue) => (
+          <linearGradient key={hue} id={`band-neon-${hue}`} x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor={neonColor(hue)} stopOpacity="1" />
+            <stop offset="100%" stopColor={neonColor(hue, 0.85)} stopOpacity="0.3" />
+          </linearGradient>
+        ))}
         <filter id="soft-glow" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="4" />
+        </filter>
+        <filter id="band-glow" x="-10%" y="-60%" width="120%" height="220%">
+          <feGaussianBlur stdDeviation="4" />
+        </filter>
+        <filter id="band-glow-wide" x="-10%" y="-80%" width="120%" height="260%">
+          <feGaussianBlur stdDeviation="14" />
         </filter>
         <clipPath id="beam-reveal">
           <motion.rect

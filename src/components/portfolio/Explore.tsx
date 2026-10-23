@@ -7,7 +7,7 @@ import { PROJECT_DETAILS } from "@/data/project-details";
 import { Lamp } from "./Lamp";
 import { prismShape, type PrismGeometry } from "./PrismBeam";
 import { ProjectCard } from "./ProjectCard";
-import { vividColor } from "@/lib/color";
+import { neonColor, vividColor } from "@/lib/color";
 
 export type ExploreMode = "about" | "projects";
 
@@ -376,6 +376,18 @@ function Spectrum({ geometry, projects, visible, interactive, selected, onSelect
             <stop offset="100%" stopColor={vividColor(p.hue, 0.75)} stopOpacity="0.3" />
           </linearGradient>
         ))}
+        {projects.map((p) => (
+          <linearGradient key={p.slug} id={`x-band-neon-${p.slug}`} x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor={neonColor(p.hue)} stopOpacity="1" />
+            <stop offset="100%" stopColor={neonColor(p.hue, 0.85)} stopOpacity="0.3" />
+          </linearGradient>
+        ))}
+        <filter id="x-band-glow" x="-10%" y="-60%" width="120%" height="220%">
+          <feGaussianBlur stdDeviation="4" />
+        </filter>
+        <filter id="x-band-glow-wide" x="-10%" y="-80%" width="120%" height="260%">
+          <feGaussianBlur stdDeviation="14" />
+        </filter>
         <clipPath id="x-fan-reveal">
           <motion.rect
             y={0}
@@ -399,6 +411,20 @@ function Spectrum({ geometry, projects, visible, interactive, selected, onSelect
       </motion.g>
 
       <g clipPath="url(#x-fan-reveal)">
+        {/* Neon: halos largo e justo no croma máximo, por baixo das faixas (somem com uma cor aberta) */}
+        {bands.map((band, i) =>
+          ["x-band-glow-wide", "x-band-glow"].map((glow) => (
+            <motion.path
+              key={`${projects[i].slug}-${glow}`}
+              d={band.d}
+              fill={`url(#x-band-neon-${projects[i].slug})`}
+              filter={`url(#${glow})`}
+              animate={{ opacity: selected !== null ? 0 : opacityOf(i) }}
+              transition={{ duration: 0.4 }}
+              style={{ pointerEvents: "none" }}
+            />
+          )),
+        )}
         {bands.map((band, i) => (
           <motion.path
             key={projects[i].slug}

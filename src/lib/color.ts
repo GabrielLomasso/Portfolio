@@ -52,6 +52,12 @@ export function vivid(h: number) {
   return best;
 }
 
+/** Cor no croma máximo, para o halo neon por baixo das faixas */
+export function neonColor(h: number, shade = 1) {
+  const l = vivid(h).l * shade;
+  return `oklch(${l.toFixed(3)} ${(maxChroma(l, h) * 0.98).toFixed(3)} ${h})`;
+}
+
 /**
  * Meio-termo entre a cor mais viva e o tom claro de antes (luminosidade 0,8 e croma 0,2):
  * mais cor que o salmão, sem o destaque exagerado do croma máximo.
