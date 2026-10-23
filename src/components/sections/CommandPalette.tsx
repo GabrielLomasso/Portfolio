@@ -33,6 +33,7 @@ export function CommandPalette() {
       { id: "laboratorio", label: "Laboratório", hint: "Seção", run: goTo("laboratorio") },
       { id: "painel", label: "Painel do sistema", hint: "Seção", run: goTo("painel") },
       { id: "trajetoria", label: "Lado A, lado B", hint: "Seção", run: goTo("trajetoria") },
+      { id: "historico", label: "Este site, commit a commit", hint: "Seção", run: goTo("historico") },
       { id: "perguntas", label: "Perguntas frequentes", hint: "Seção", run: goTo("perguntas") },
       { id: "contato", label: "Contato", hint: "Seção", run: goTo("contato") },
       {

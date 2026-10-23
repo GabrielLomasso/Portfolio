@@ -1,5 +1,6 @@
 import { SpectrumHero } from "@/components/portfolio/SpectrumHero";
 import { BeforeAfter } from "@/components/sections/BeforeAfter";
+import { Changelog } from "@/components/sections/Changelog";
 import { CommandPalette } from "@/components/sections/CommandPalette";
 import { Contact } from "@/components/sections/Contact";
 import { Faq } from "@/components/sections/Faq";
@@ -27,6 +28,7 @@ export default function App() {
       <Lab />
       <SystemPanel />
       <Tracklist />
+      <Changelog />
       <Faq />
       <Contact />
       <footer className="flex flex-col items-center justify-between gap-2 border-t border-line px-6 py-10 font-mono text-[11px] uppercase tracking-[0.2em] text-muted sm:flex-row">

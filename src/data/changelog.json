@@ -1,0 +1,157 @@
+{
+  "generatedAt": "2026-10-23",
+  "commits": [
+    {
+      "hash": "5552bcd",
+      "date": "2026-10-23",
+      "subject": "Revisão no celular: painel em 2 colunas, gráfico com altura, rótulos com cor",
+      "tags": []
+    },
+    {
+      "hash": "e133bfa",
+      "date": "2026-10-23",
+      "subject": "Seção Perguntas frequentes: acordeão com mini prisma",
+      "tags": []
+    },
+    {
+      "hash": "392441d",
+      "date": "2026-10-23",
+      "subject": "Seção Do rascunho ao ar: comparador wireframe x site no ar",
+      "tags": []
+    },
+    {
+      "hash": "a222459",
+      "date": "2026-10-23",
+      "subject": "Barra de progresso em espectro e paleta de comandos (Ctrl+K)",
+      "tags": []
+    },
+    {
+      "hash": "4c0182a",
+      "date": "2026-10-23",
+      "subject": "Seção Contato: chamada, e-mail que copia, relógio de BH e formulário",
+      "tags": []
+    },
+    {
+      "hash": "af8e385",
+      "date": "2026-10-23",
+      "subject": "Seção Lado A, lado B: trajetória como contracapa de disco",
+      "tags": []
+    },
+    {
+      "hash": "106e77e",
+      "date": "2026-10-23",
+      "subject": "Seção Painel do sistema: métricas, tráfego ao vivo, log e terminal",
+      "tags": []
+    },
+    {
+      "hash": "ac7a1b4",
+      "date": "2026-10-23",
+      "subject": "Seção Laboratório: bento de componentes vivos",
+      "tags": []
+    },
+    {
+      "hash": "7f83d06",
+      "date": "2026-10-23",
+      "subject": "Seção Processo: etapas num scroll horizontal fixado",
+      "tags": []
+    },
+    {
+      "hash": "ee67c21",
+      "date": "2026-10-23",
+      "subject": "Seção Espectro de habilidades: analisador de espectro interativo",
+      "tags": []
+    },
+    {
+      "hash": "1f7dbbb",
+      "date": "2026-10-23",
+      "subject": "Seção Manifesto: texto que acende palavra por palavra no scroll",
+      "tags": []
+    },
+    {
+      "hash": "4a02021",
+      "date": "2026-10-23",
+      "subject": "Pesquisa de referências para as seções novas",
+      "tags": []
+    },
+    {
+      "hash": "e4579d7",
+      "date": "2026-10-23",
+      "subject": "Print real no card do Thaylor",
+      "tags": [
+        "v1-hero-prisma"
+      ]
+    },
+    {
+      "hash": "92ab9b1",
+      "date": "2026-10-22",
+      "subject": "Reorganiza projetos: novas cores e três fora por enquanto",
+      "tags": []
+    },
+    {
+      "hash": "5af4efd",
+      "date": "2026-10-22",
+      "subject": "Início do arco-íris segue a face do prisma",
+      "tags": []
+    },
+    {
+      "hash": "e35a45e",
+      "date": "2026-10-22",
+      "subject": "Arco-íris só a partir da face do prisma e legenda na base",
+      "tags": []
+    },
+    {
+      "hash": "254666e",
+      "date": "2026-10-22",
+      "subject": "Nome volta ao vidro e diminui para caber no prisma",
+      "tags": []
+    },
+    {
+      "hash": "337792d",
+      "date": "2026-10-22",
+      "subject": "Volta a proporção da fonte e alonga os espinhos",
+      "tags": []
+    },
+    {
+      "hash": "056ca60",
+      "date": "2026-10-22",
+      "subject": "Fonte do nome mais achatada e larga",
+      "tags": []
+    },
+    {
+      "hash": "f0825cd",
+      "date": "2026-10-22",
+      "subject": "Fonte em lâmina, nome sólido com sombra deslocada",
+      "tags": []
+    },
+    {
+      "hash": "36391a3",
+      "date": "2026-10-22",
+      "subject": "Fonte própria do nome no estilo dos títulos cyberpunk",
+      "tags": []
+    },
+    {
+      "hash": "e464434",
+      "date": "2026-10-22",
+      "subject": "Nome em Tektur, centralizado no prisma, e triângulo com neon",
+      "tags": []
+    },
+    {
+      "hash": "2f079c7",
+      "date": "2026-10-22",
+      "subject": "Nome em Orbitron e luz cibernética nos projetos",
+      "tags": []
+    },
+    {
+      "hash": "4696fd8",
+      "date": "2026-10-22",
+      "subject": "Abertura em sequência com o triângulo do prisma",
+      "tags": []
+    },
+    {
+      "hash": "3680ad0",
+      "date": "2026-10-22",
+      "subject": "Portfólio: hero com nome em vidro e túnel de projetos",
+      "tags": []
+    }
+  ]
+}
