@@ -211,7 +211,7 @@ export function ExploreOverlay({ initialMode, geometry, projects, onClose }: Exp
             />
           </g>
           <g transform={`translate(${-targetX("about")} 0)`}>
-            <Beam geometry={geometry} visible={lightsOn} xShift={isMobile ? side * 0.25 : 0} />
+            <Beam geometry={geometry} side={side} visible={lightsOn} xShift={isMobile ? side * 0.25 : 0} />
           </g>
           <motion.g animate={{ opacity: selected !== null ? 0.12 : 1 }} transition={{ duration: 0.5 }}>
             <Lamp lit={lit} top={shape.top} left={shape.left} right={shape.right} side={side} instant={reduce} onSettled={onLampSettled}>
@@ -277,12 +277,13 @@ function TriangleTube({ top, left, right }: { top: Point; left: Point; right: Po
 /** Quem sou eu: o feixe branco entra pela face esquerda e rasga o vidro até a borda da tela. */
 interface BeamProps {
   geometry: PrismGeometry;
+  side: number;
   visible: boolean;
   xShift: number;
 }
 
 /** O raio branco só vai até a face; dentro do vidro ele já é o leque de cores do arco-íris. */
-function Beam({ geometry, visible, xShift }: BeamProps) {
+function Beam({ geometry, side, visible, xShift }: BeamProps) {
   const { width: W, height: H } = geometry;
   const { top, left } = prismShape({ ...geometry, cx: W + xShift });
   const entry = lerp(left, top, 0.55);
@@ -311,6 +312,17 @@ function Beam({ geometry, visible, xShift }: BeamProps) {
         <line x1={start.x} y1={start.y} x2={entry.x} y2={entry.y} stroke="url(#x-beam)" strokeWidth={7} filter="url(#x-soft-glow)" opacity={0.5} />
         <line x1={start.x} y1={start.y} x2={entry.x} y2={entry.y} stroke="url(#x-beam)" strokeWidth={2} />
       </g>
+      {/* Brilho no ponto onde o raio encosta no vidro */}
+      <motion.circle
+        cx={entry.x}
+        cy={entry.y}
+        r={side * 0.03}
+        fill="#fff"
+        filter="url(#x-soft-glow)"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: visible ? 0.5 : 0 }}
+        transition={{ duration: 0.3, delay: visible ? 0.45 : 0 }}
+      />
     </g>
   );
 }
