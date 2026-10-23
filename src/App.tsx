@@ -6,6 +6,7 @@ import { Contact } from "@/components/sections/Contact";
 import { Faq } from "@/components/sections/Faq";
 import { Lab } from "@/components/sections/Lab";
 import { Manifesto } from "@/components/sections/Manifesto";
+import { PrismLab } from "@/components/sections/PrismLab";
 import { Process } from "@/components/sections/Process";
 import { ScrollProgress } from "@/components/sections/ScrollProgress";
 import { SkillSpectrum } from "@/components/sections/SkillSpectrum";
@@ -26,6 +27,7 @@ export default function App() {
       <Process />
       <BeforeAfter />
       <Lab />
+      <PrismLab />
       <SystemPanel />
       <Tracklist />
       <Changelog />
