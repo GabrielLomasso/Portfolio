@@ -86,9 +86,9 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
   const hue = useTransform(progress, peaks, projects.map((p) => p.hue));
   // Sem a luz, a cor também vai embora: o vidro volta a ser incolor no encerramento.
   const chroma = useTransform(progress, [0, TUNNEL_FROM, peaks[0], OUTRO_FROM, OUTRO_FROM + 0.05], [0, 0.03, 0.19, 0.19, 0]);
-  // Antes do encerramento o espectro inteiro volta a acender (como no hero), para a luz
-  // poder se apagar cor por cor de um jeito visível.
-  const focus = useTransform(progress, [TUNNEL_FROM * 0.5, peaks[0], OUTRO_FROM - 0.02, OUTRO_FROM], [0, 1, 1, 0]);
+  // Depois do primeiro projeto só a cor em foco fica acesa, até o fim: no encerramento a
+  // luz se apaga com o violeta (a última cor) destacado, sem as outras reacenderem.
+  const focus = useTransform(progress, [TUNNEL_FROM * 0.5, peaks[0]], [0, 1]);
   const outro = useTransform(progress, [OUTRO_FROM, 1], [0, 1]);
 
   // Quanto mais rápido o scroll, mais o vidro separa a luz nas bordas.
