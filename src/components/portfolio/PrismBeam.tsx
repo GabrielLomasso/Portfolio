@@ -112,7 +112,9 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse }: Pri
   const exitBottom = lerp(right, top, 0.5 - BANDS.length * bandStep);
 
   const triangle = `M${top.x} ${top.y} L${right.x} ${right.y} L${left.x} ${left.y} Z`;
-  const fanX = exitBottom.x - 2;
+  // A revelação começa à esquerda de todas as faixas: a face é inclinada, e começar no ponto
+  // mais à direita cortava o início das faixas numa linha vertical em vez de seguir a face.
+  const fanX = Math.min(exitTop.x, exitBottom.x) - 2;
 
   return (
     <svg
