@@ -95,6 +95,8 @@ export function ExploreOverlay({ initialMode, geometry, projects, onClose }: Exp
   const [lit, setLit] = useState(false);
   const [phase, setPhase] = useState<Phase>("igniting");
   const [selected, setSelected] = useState<number | null>(null);
+  // O raio branco e o arco-íris acendem na primeira vez e ficam ligados ao trocar de lado
+  const [lightsOn, setLightsOn] = useState(false);
   const tx = useMotionValue(0);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -112,7 +114,10 @@ export function ExploreOverlay({ initialMode, geometry, projects, onClose }: Exp
   const moveTo = useCallback(
     (m: ExploreMode) => {
       setPhase("moving");
-      animate(tx, targetX(m), { duration: reduce ? 0 : 1.1, ease: EASE }).then(() => setPhase("shown"));
+      animate(tx, targetX(m), { duration: reduce ? 0 : 1.1, ease: EASE }).then(() => {
+        setPhase("shown");
+        setLightsOn(true);
+      });
     },
     [tx, targetX, reduce],
   );
@@ -149,6 +154,7 @@ export function ExploreOverlay({ initialMode, geometry, projects, onClose }: Exp
   const close = () => {
     if (phase === "leaving") return;
     setSelected(null);
+    setLightsOn(false);
     setPhase("leaving");
     // Volta para o meio e apaga de novo; ao apagar, a tela cheia fecha e os botões voltam
     animate(tx, 0, { duration: reduce ? 0 : 0.6, ease: EASE }).then(() => setLit(false));
@@ -187,25 +193,31 @@ export function ExploreOverlay({ initialMode, geometry, projects, onClose }: Exp
           </filter>
         </defs>
 
-        {mode === "projects" && (
-          <Spectrum
-            geometry={geometry}
-            projects={projects}
-            visible={shown}
-            selected={selected}
-            onSelect={setSelected}
-          />
-        )}
-        {mode === "about" && <Beam geometry={geometry} side={side} visible={shown} xShift={isMobile ? side * 0.25 : 0} />}
-
-        <motion.g
-          style={{ x: tx }}
-          animate={{ opacity: selected !== null ? 0.12 : 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Lamp lit={lit} top={shape.top} left={shape.left} right={shape.right} side={side} instant={reduce} onSettled={onLampSettled}>
-            <TriangleTube top={shape.top} left={shape.left} right={shape.right} />
-          </Lamp>
+        {/*
+          O raio e o arco-íris andam junto com o triângulo. Os dois ficam sempre ligados: em
+          "Quem sou eu" o arco-íris sai pela metade fora da tela, e em "Meus projetos" é o raio
+          que entra por fora; ao trocar de lado, um aparece enquanto o outro sai.
+          Cada um é desenhado na posição final da tela e deslocado para acompanhar `tx`.
+        */}
+        <motion.g style={{ x: tx }}>
+          <g transform={`translate(${-targetX("projects")} 0)`}>
+            <Spectrum
+              geometry={geometry}
+              projects={projects}
+              visible={lightsOn}
+              interactive={shown && mode === "projects"}
+              selected={selected}
+              onSelect={setSelected}
+            />
+          </g>
+          <g transform={`translate(${-targetX("about")} 0)`}>
+            <Beam geometry={geometry} side={side} visible={lightsOn} inside={mode === "about"} xShift={isMobile ? side * 0.25 : 0} />
+          </g>
+          <motion.g animate={{ opacity: selected !== null ? 0.12 : 1 }} transition={{ duration: 0.5 }}>
+            <Lamp lit={lit} top={shape.top} left={shape.left} right={shape.right} side={side} instant={reduce} onSettled={onLampSettled}>
+              <TriangleTube top={shape.top} left={shape.left} right={shape.right} />
+            </Lamp>
+          </motion.g>
         </motion.g>
       </svg>
 
@@ -263,7 +275,16 @@ function TriangleTube({ top, left, right }: { top: Point; left: Point; right: Po
 }
 
 /** Quem sou eu: o feixe branco entra pela face esquerda e rasga o vidro até a borda da tela. */
-function Beam({ geometry, side, visible, xShift }: { geometry: PrismGeometry; side: number; visible: boolean; xShift: number }) {
+interface BeamProps {
+  geometry: PrismGeometry;
+  side: number;
+  visible: boolean;
+  /** Luz branca dentro do vidro; some em "Meus projetos", onde o arco-íris assume */
+  inside: boolean;
+  xShift: number;
+}
+
+function Beam({ geometry, side, visible, inside, xShift }: BeamProps) {
   const { width: W, height: H } = geometry;
   const { top, left } = prismShape({ ...geometry, cx: W + xShift });
   const entry = lerp(left, top, 0.55);
@@ -300,8 +321,8 @@ function Beam({ geometry, side, visible, xShift }: { geometry: PrismGeometry; si
       </g>
       <motion.g
         initial={{ opacity: 0 }}
-        animate={{ opacity: visible ? 1 : 0 }}
-        transition={{ duration: 0.3, delay: visible ? 0.45 : 0 }}
+        animate={{ opacity: visible && inside ? 1 : 0 }}
+        transition={{ duration: inside ? 0.3 : 0.8, delay: visible && inside ? 0.45 : 0 }}
       >
         <path d={inner} fill="url(#x-beam-inside)" />
         <line x1={entry.x} y1={entry.y} x2={W} y2={entry.y + run * 0.1} stroke="#fff" strokeOpacity={0.7} strokeWidth={1.5} />
@@ -330,12 +351,14 @@ interface SpectrumProps {
   geometry: PrismGeometry;
   projects: Project[];
   visible: boolean;
+  /** Clicável só em "Meus projetos" */
+  interactive: boolean;
   selected: number | null;
   onSelect: (index: number) => void;
 }
 
 /** Meus projetos: o arco-íris ocupa a tela; cada cor é um projeto e, ao escolher, cresce até cobrir tudo. */
-function Spectrum({ geometry, projects, visible, selected, onSelect }: SpectrumProps) {
+function Spectrum({ geometry, projects, visible, interactive, selected, onSelect }: SpectrumProps) {
   const { width: W, height: H } = geometry;
   const [hovered, setHovered] = useState<number | null>(null);
   const bands = spectrumBands(geometry, projects.length);
@@ -344,7 +367,7 @@ function Spectrum({ geometry, projects, visible, selected, onSelect }: SpectrumP
 
   const opacityOf = (i: number) => {
     if (selected !== null) return selected === i ? 0.3 : 0;
-    if (hovered !== null) return hovered === i ? 1 : 0.4;
+    if (interactive && hovered !== null) return hovered === i ? 1 : 0.4;
     return 0.85;
   };
 
@@ -389,9 +412,9 @@ function Spectrum({ geometry, projects, visible, selected, onSelect }: SpectrumP
             transition={{ d: { duration: 0.8, ease: EASE }, opacity: { duration: 0.4 } }}
             onPointerEnter={() => setHovered(i)}
             onPointerLeave={() => setHovered((h) => (h === i ? null : h))}
-            onClick={() => selected === null && onSelect(i)}
-            className={selected === null ? "cursor-pointer" : undefined}
-            style={{ pointerEvents: visible && selected === null ? "auto" : "none" }}
+            onClick={() => interactive && selected === null && onSelect(i)}
+            className={interactive && selected === null ? "cursor-pointer" : undefined}
+            style={{ pointerEvents: interactive && selected === null ? "auto" : "none" }}
           />
         ))}
       </g>
