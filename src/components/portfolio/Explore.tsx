@@ -26,15 +26,19 @@ const quad = (a: Point, b: Point, c: Point, d: Point) => `M${a.x} ${a.y} L${b.x}
 /* Botões que aparecem quando o triângulo apaga no fim do hero         */
 /* ------------------------------------------------------------------ */
 
+/** O que cada botão abre: as duas telas do triângulo ou a tela de contato */
+export type Choice = ExploreMode | "contact";
+
 interface ChoiceButtonsProps {
   visible: boolean;
-  onPick: (mode: ExploreMode) => void;
+  onPick: (choice: Choice) => void;
 }
 
 export function ChoiceButtons({ visible, onPick }: ChoiceButtonsProps) {
-  const options: { mode: ExploreMode; label: string }[] = [
-    { mode: "about", label: "Quem sou eu?" },
-    { mode: "projects", label: "Meus projetos" },
+  const options: { choice: Choice; label: string }[] = [
+    { choice: "about", label: "Quem sou eu?" },
+    { choice: "projects", label: "Meus projetos" },
+    { choice: "contact", label: "Se interessou?" },
   ];
 
   return (
@@ -55,17 +59,18 @@ export function ChoiceButtons({ visible, onPick }: ChoiceButtonsProps) {
               Conheça quem está por trás do prisma ou veja o que já passou por ele.
             </p>
           </motion.div>
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:gap-6">
+          {/* Os dois lados lado a lado; o contato embaixo, no meio */}
+          <div className="mt-8 grid justify-items-center gap-4 sm:grid-cols-2 sm:gap-6">
             {options.map((option, i) => (
               <motion.button
-                key={option.mode}
+                key={option.choice}
                 type="button"
-                onClick={() => onPick(option.mode)}
+                onClick={() => onPick(option.choice)}
                 // Acende como um terminal velho: falha uma vez antes de firmar
                 initial={{ opacity: 0 }}
                 animate={{ opacity: [0, 0.8, 0.1, 0.6, 0.2, 1] }}
                 transition={{ duration: 0.45, delay: 0.1 + i * 0.12, times: [0, 0.15, 0.3, 0.5, 0.65, 1] }}
-                className={`${MONO} w-56 border border-white/20 px-6 py-4 text-white/80 transition-[border-color,color,box-shadow] duration-300 hover:border-white/70 hover:text-white hover:shadow-[0_0_28px_rgb(255_255_255/0.18)]`}
+                className={`${MONO} ${option.choice === "contact" ? "sm:col-span-2" : ""} w-56 border border-white/20 px-6 py-4 text-white/80 transition-[border-color,color,box-shadow] duration-300 hover:border-white/70 hover:text-white hover:shadow-[0_0_28px_rgb(255_255_255/0.18)]`}
               >
                 {option.label}
               </motion.button>

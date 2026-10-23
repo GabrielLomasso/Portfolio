@@ -19,7 +19,8 @@ import {
   useCameraParallax,
   useTunnelStage,
 } from "@/components/ui/perspective-tunnel";
-import { ChoiceButtons, ExploreOverlay, type ExploreMode } from "./Explore";
+import { ContactOverlay } from "./Contact";
+import { ChoiceButtons, ExploreOverlay, type Choice } from "./Explore";
 import { INTRO, LAMP_START, LIGHT_OFF_END, PrismBeam, prismShape, type PrismGeometry } from "./PrismBeam";
 import { ProjectCard } from "./ProjectCard";
 import { SpectrumRail } from "./SpectrumRail";
@@ -131,7 +132,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
   // Fim do hero: assim que o triângulo apaga de vez, aparecem as duas opções.
   // Voltando a rolar para cima, ele reacende e elas somem.
   const [choiceReady, setChoiceReady] = useState(false);
-  const [explore, setExplore] = useState<ExploreMode | null>(null);
+  const [explore, setExplore] = useState<Choice | null>(null);
 
 
   const sectionHeight = `${100 + VH_PER_PROJECT / step}svh`;
@@ -326,9 +327,10 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
 
         <div aria-hidden className="grain pointer-events-none absolute inset-0 z-40 opacity-[0.06] mix-blend-overlay" />
       </motion.div>
-      {explore && geometry && (
+      {(explore === "about" || explore === "projects") && geometry && (
         <ExploreOverlay initialMode={explore} geometry={geometry} projects={projects} onClose={() => setExplore(null)} />
       )}
+      {explore === "contact" && <ContactOverlay onClose={() => setExplore(null)} />}
     </section>
   );
 }
