@@ -18,6 +18,8 @@ export function SkillSpectrum() {
   const reduce = useReducedMotion();
   const [active, setActive] = useState(0);
   const [interacted, setInteracted] = useState(false);
+  const [sound, setSound] = useState(false);
+  const audio = useRef<{ ctx: AudioContext; osc: OscillatorNode; gain: GainNode } | null>(null);
 
   // Estado do desenho fica em refs para o loop não depender de re-render
   const pointerX = useRef<number | null>(null);
@@ -140,12 +142,49 @@ export function SkillSpectrum() {
     if (reduce) drawRef.current?.(0);
   }, [active, reduce]);
 
+  // Som opcional: o analisador vira um teremim (grave à esquerda, agudo à direita).
+  // O AudioContext só nasce no clique do botão, como os navegadores exigem.
+  const toggleSound = () => {
+    if (audio.current) {
+      audio.current.ctx.close();
+      audio.current = null;
+      setSound(false);
+      return;
+    }
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+    osc.type = "sawtooth";
+    filter.type = "lowpass";
+    filter.frequency.value = 1400;
+    gain.gain.value = 0;
+    osc.connect(filter).connect(gain).connect(ctx.destination);
+    osc.start();
+    audio.current = { ctx, osc, gain };
+    setSound(true);
+  };
+
+  useEffect(() => () => void audio.current?.ctx.close(), []);
+
+  const silence = () => {
+    pointerX.current = null;
+    const a = audio.current;
+    if (a) a.gain.gain.setTargetAtTime(0, a.ctx.currentTime, 0.08);
+  };
+
   const selectFromPointer = (clientX: number) => {
     const wrap = wrapRef.current;
     if (!wrap) return;
     const rect = wrap.getBoundingClientRect();
     const x = clientX - rect.left;
     pointerX.current = x;
+    const a = audio.current;
+    if (a) {
+      const frequency = 110 * 2 ** ((x / rect.width) * 4);
+      a.osc.frequency.setTargetAtTime(frequency, a.ctx.currentTime, 0.03);
+      a.gain.gain.setTargetAtTime(0.05, a.ctx.currentTime, 0.05);
+    }
     const index = Math.min(SKILL_BANDS.length - 1, Math.max(0, Math.floor((x / rect.width) * SKILL_BANDS.length)));
     setInteracted(true);
     setActive(index);
@@ -160,7 +199,7 @@ export function SkillSpectrum() {
           id="habilidades-title"
           eyebrow="Habilidades"
           title="Espectro de habilidades"
-          intro="Cada faixa do analisador é uma área do que eu faço. Passe o mouse (ou toque) nas barras para ouvir uma de cada vez."
+          intro="Cada faixa do analisador é uma área do que eu faço. Passe o mouse (ou toque) nas barras para ouvir uma de cada vez; com o som ligado, o analisador vira um instrumento."
         />
 
         <div className="mt-14 rounded-2xl border border-line bg-white/[0.015] p-4 sm:p-6">
@@ -169,7 +208,19 @@ export function SkillSpectrum() {
               <span className="size-1.5 animate-pulse rounded-full" style={{ background: `oklch(0.8 0.2 ${band.hue})` }} />
               Analisador
             </span>
-            <span>20 Hz — 20 kHz</span>
+            <button
+              type="button"
+              onClick={toggleSound}
+              aria-pressed={sound}
+              className="flex items-center gap-2 rounded-full border border-white/10 px-2.5 py-1 tracking-[0.2em] transition-colors hover:border-white/30 hover:text-fg"
+            >
+              <span aria-hidden className="flex h-2.5 items-end gap-px">
+                {[0.4, 1, 0.65].map((h, i) => (
+                  <span key={i} className="w-px bg-current" style={{ height: sound ? `${h * 100}%` : "30%" }} />
+                ))}
+              </span>
+              {sound ? "Som ligado" : "Ligar som"}
+            </button>
           </div>
 
           <div
@@ -177,7 +228,8 @@ export function SkillSpectrum() {
             className="relative h-56 w-full cursor-crosshair touch-none sm:h-72"
             onPointerMove={(e) => selectFromPointer(e.clientX)}
             onPointerDown={(e) => selectFromPointer(e.clientX)}
-            onPointerLeave={() => (pointerX.current = null)}
+            onPointerLeave={silence}
+            onPointerUp={(e) => e.pointerType !== "mouse" && silence()}
             aria-hidden
           >
             <canvas ref={canvasRef} className="absolute inset-0" />
