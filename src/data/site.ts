@@ -165,3 +165,31 @@ export const SIDE_B: Track[] = [
   { title: "Landing pages", period: "2026", note: "Páginas de captação para profissionais de BH, pensadas para converter no WhatsApp." },
   { title: "Sistemas sob medida", period: "2026 — hoje", note: "Estoque de obra, gestão de construtora e finanças: sistemas completos com banco e login." },
 ];
+
+// TODO: confirmar valores e prazos antes de publicar
+export const FAQ = [
+  {
+    q: "Quanto custa um site?",
+    a: "Depende do tamanho. Landing page tem valor fechado; sistema é orçado pelo escopo, em partes que você aprova uma de cada vez. A primeira conversa não custa nada.",
+  },
+  {
+    q: "Quanto tempo leva?",
+    a: "Uma landing page fica pronta em uma a duas semanas. Um sistema leva de quatro a dez semanas e vai sendo entregue em etapas, então você usa antes de ficar tudo pronto.",
+  },
+  {
+    q: "Você cuida de domínio e hospedagem?",
+    a: "Cuido. Registro o domínio no seu nome, publico e deixo tudo configurado. Você é dono de tudo, e não fica preso a mim.",
+  },
+  {
+    q: "Vou conseguir mudar o conteúdo depois?",
+    a: "Sim. Quando o conteúdo muda com frequência, o site já sai com um painel para você editar textos, fotos e preços sem mexer em código.",
+  },
+  {
+    q: "Funciona bem no celular?",
+    a: "É por onde eu começo. A maioria das visitas vem do celular, então tudo é desenhado primeiro para a tela pequena; sistemas podem até ser instalados como app.",
+  },
+  {
+    q: "E depois que o site vai para o ar?",
+    a: "O primeiro mês de ajustes está incluído. Depois disso, dá para seguir com uma manutenção mensal ou me chamar só quando precisar.",
+  },
+];
