@@ -22,6 +22,23 @@ export function CommandPalette() {
   const [index, setIndex] = useState(0);
   const [feedback, setFeedback] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // O botão some quando o rodapé aparece, para não ficar por cima do texto dele
+  const [footerVisible, setFooterVisible] = useState(false);
+  // E só aparece depois da abertura do hero (tela preta, nome, prisma, feixe)
+  const [introDone, setIntroDone] = useState(false);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setIntroDone(true), 6400);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  useEffect(() => {
+    const footer = document.querySelector("footer");
+    if (!footer) return;
+    const io = new IntersectionObserver(([entry]) => setFooterVisible(entry.isIntersecting));
+    io.observe(footer);
+    return () => io.disconnect();
+  }, []);
 
   const commands = useMemo<Command[]>(
     () => [
@@ -114,13 +131,14 @@ export function CommandPalette() {
 
   return (
     <>
-      {/* Só aparece depois da abertura do hero, que começa com a tela toda preta */}
       <motion.button
         type="button"
         onClick={openPalette}
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 6.4 }}
+        animate={{ opacity: introDone && !footerVisible ? 1 : 0 }}
+        transition={{ duration: 0.5 }}
+        style={{ pointerEvents: introDone && !footerVisible ? undefined : "none" }}
+        tabIndex={introDone && !footerVisible ? undefined : -1}
         className="fixed bottom-5 left-5 z-50 hidden items-center gap-2 rounded-full border border-white/10 bg-black/70 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted backdrop-blur transition-colors hover:border-white/30 hover:text-fg md:flex"
         aria-label="Abrir a paleta de comandos"
       >
