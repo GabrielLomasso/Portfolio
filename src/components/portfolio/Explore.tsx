@@ -360,6 +360,10 @@ function Spectrum({ geometry, projects, visible, interactive, selected, onSelect
   const bands = spectrumBands(geometry, projects.length);
   const full = quad({ x: 0, y: 0 }, { x: W, y: 0 }, { x: W, y: H }, { x: 0, y: H });
   const fanX = Math.min(...bands.map((b) => Math.min(b.a.x, b.b.x))) - 2;
+  // Contorno do leque inteiro: o desfoque mistura as cores entre si, mas a borda de fora fica nítida
+  const first = bands[0];
+  const last = bands[bands.length - 1];
+  const fan = quad(first.a, { x: W, y: first.yTop }, { x: W, y: last.yBottom }, last.b);
 
   const opacityOf = (i: number) => {
     if (selected !== null) return selected === i ? 0.3 : 0;
@@ -388,6 +392,12 @@ function Spectrum({ geometry, projects, visible, interactive, selected, onSelect
         <filter id="x-band-glow-wide" x="-10%" y="-80%" width="120%" height="260%">
           <feGaussianBlur stdDeviation="14" />
         </filter>
+        <filter id="x-band-blend" x="-5%" y="-5%" width="110%" height="110%">
+          <feGaussianBlur stdDeviation="12" />
+        </filter>
+        <clipPath id="x-fan-shape">
+          <motion.path initial={{ d: fan }} animate={{ d: selected !== null ? full : fan }} transition={{ duration: 0.8, ease: EASE }} />
+        </clipPath>
         <clipPath id="x-fan-reveal">
           <motion.rect
             y={0}
@@ -425,13 +435,27 @@ function Spectrum({ geometry, projects, visible, interactive, selected, onSelect
             />
           )),
         )}
+        {/* As faixas desfocadas juntas, para as cores se misturarem na divisa */}
+        <g clipPath="url(#x-fan-shape)">
+          <g filter="url(#x-band-blend)">
+            {bands.map((band, i) => (
+              <motion.path
+                key={projects[i].slug}
+                fill={`url(#x-band-${projects[i].slug})`}
+                initial={{ d: band.d }}
+                animate={{ d: selected === i ? full : band.d, opacity: opacityOf(i) }}
+                transition={{ d: { duration: 0.8, ease: EASE }, opacity: { duration: 0.4 } }}
+              />
+            ))}
+          </g>
+        </g>
+        {/* Área de clique de cada cor, com a divisa exata */}
         {bands.map((band, i) => (
-          <motion.path
-            key={projects[i].slug}
-            fill={`url(#x-band-${projects[i].slug})`}
-            initial={{ d: band.d }}
-            animate={{ d: selected === i ? full : band.d, opacity: opacityOf(i) }}
-            transition={{ d: { duration: 0.8, ease: EASE }, opacity: { duration: 0.4 } }}
+          <path
+            key={`${projects[i].slug}-hit`}
+            d={band.d}
+            fill="#000"
+            fillOpacity={0}
             onPointerEnter={() => setHovered(i)}
             onPointerLeave={() => setHovered((h) => (h === i ? null : h))}
             onClick={() => interactive && selected === null && onSelect(i)}
