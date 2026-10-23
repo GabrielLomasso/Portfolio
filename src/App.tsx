@@ -1,5 +1,6 @@
 import { SpectrumHero } from "@/components/portfolio/SpectrumHero";
 import { Manifesto } from "@/components/sections/Manifesto";
+import { Process } from "@/components/sections/Process";
 import { SkillSpectrum } from "@/components/sections/SkillSpectrum";
 import { PROJECTS } from "@/data/projects";
 
@@ -11,6 +12,7 @@ export default function App() {
       <SpectrumHero projects={VISIBLE_PROJECTS} />
       <Manifesto />
       <SkillSpectrum />
+      <Process />
       <footer className="flex flex-col items-center justify-between gap-2 border-t border-line px-6 py-10 font-mono text-[11px] uppercase tracking-[0.2em] text-muted sm:flex-row">
         <span>Gabriel Fajardo</span>
         <span>Belo Horizonte · {new Date().getFullYear()}</span>
