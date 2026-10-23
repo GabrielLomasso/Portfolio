@@ -13,6 +13,12 @@ export const INTRO = {
   ui: 5.6,
 } as const;
 
+/**
+ * Encerramento do hero (progresso 0–1 depois da última cor): a luz se apaga da esquerda
+ * para a direita, o arco-íris some e, a partir deste ponto, o triângulo vira o prisma 3D.
+ */
+export const PRISM_3D_FROM = 0.45;
+
 export interface PrismGeometry {
   /** Tamanho do palco em px */
   width: number;
@@ -73,12 +79,21 @@ interface PrismBeamProps {
   animateIn: boolean;
   /** Projeto em foco (-1 no hero). Cada troca dispara o glitch do triângulo. */
   pulse: number;
+  /** Progresso do encerramento do hero (0 até a última cor, 1 com a tela preta) */
+  outro: MotionValue<number>;
 }
 
 /** Triângulo de vidro atrás do nome: o feixe branco entra pela face esquerda e sai em espectro pela direita. */
-export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse }: PrismBeamProps) {
+export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse, outro }: PrismBeamProps) {
   const beamOpacity = useTransform(focus, [0, 1], [1, 0.35]);
-  const prismOpacity = useTransform(focus, [0, 1], [1, 0.7]);
+  // O triângulo do SVG sai de cena quando o prisma 3D assume o lugar dele
+  const prismOpacity = useTransform([focus, outro], ([f, o]: number[]) => (o >= PRISM_3D_FROM ? 0 : 1 - f * 0.3));
+
+  // A luz se apaga como se a fonte desligasse: o fim do feixe viaja até o prisma,
+  // atravessa o vidro e depois o arco-íris some saindo da face para a direita.
+  const beamTail = useTransform(outro, [0, 0.22], [1, 0]);
+  const innerLight = useTransform([beamOpacity, outro], ([b, o]: number[]) => b * Math.min(1, Math.max(0, (0.26 - o) / 0.08)));
+  const fanTail = useTransform(outro, [0.24, 0.55], [1, 0]);
   const reduce = useReducedMotion();
   const [scope, animate] = useAnimate<SVGGElement>();
 
@@ -152,6 +167,13 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse }: Pri
             transition={{ duration: 0.65, delay: INTRO.beam, ease: [0.55, 0, 0.9, 0.6] }}
           />
         </clipPath>
+        {/* Encerramento: as duas máscaras encolhem para a direita, apagando a luz */}
+        <clipPath id="beam-outro">
+          <motion.rect x="0" y="0" width={entry.x} height={H} style={{ scaleX: beamTail, originX: 1 }} />
+        </clipPath>
+        <clipPath id="fan-outro">
+          <motion.rect x={fanX} y="0" width={W - fanX} height={H} style={{ scaleX: fanTail, originX: 1 }} />
+        </clipPath>
         <clipPath id="fan-reveal">
           <motion.rect
             x={fanX}
@@ -205,26 +227,30 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse }: Pri
       </motion.g>
 
       {/* Feixe branco até a face esquerda */}
-      <motion.g style={{ opacity: beamOpacity }} clipPath="url(#beam-reveal)">
-        <line x1={beamStart.x} y1={beamStart.y} x2={entry.x} y2={entry.y} stroke="url(#beam-in)" strokeWidth={7} filter="url(#soft-glow)" opacity={0.5} />
-        <line x1={beamStart.x} y1={beamStart.y} x2={entry.x} y2={entry.y} stroke="url(#beam-in)" strokeWidth={2} />
-      </motion.g>
+      <g clipPath="url(#beam-outro)">
+        <motion.g style={{ opacity: beamOpacity }} clipPath="url(#beam-reveal)">
+          <line x1={beamStart.x} y1={beamStart.y} x2={entry.x} y2={entry.y} stroke="url(#beam-in)" strokeWidth={7} filter="url(#soft-glow)" opacity={0.5} />
+          <line x1={beamStart.x} y1={beamStart.y} x2={entry.x} y2={entry.y} stroke="url(#beam-in)" strokeWidth={2} />
+        </motion.g>
+      </g>
 
       {/* Luz atravessando o vidro */}
       <motion.polygon
         points={pts(lerp(left, top, 0.545), lerp(left, top, 0.555), exitTop, exitBottom)}
         fill="#fff"
-        style={{ opacity: beamOpacity }}
+        style={{ opacity: innerLight }}
         initial={animateIn ? { fillOpacity: 0 } : false}
         animate={{ fillOpacity: 0.22 }}
         transition={{ duration: 0.35, delay: INTRO.beam + 0.6 }}
       />
 
       {/* Espectro saindo pela face direita */}
-      <g clipPath="url(#fan-reveal)">
-        {bands.map((band) => (
-          <Band key={band.hue} hue={band.hue} points={band.points} currentHue={currentHue} focus={focus} />
-        ))}
+      <g clipPath="url(#fan-outro)">
+        <g clipPath="url(#fan-reveal)">
+          {bands.map((band) => (
+            <Band key={band.hue} hue={band.hue} points={band.points} currentHue={currentHue} focus={focus} />
+          ))}
+        </g>
       </g>
     </svg>
   );

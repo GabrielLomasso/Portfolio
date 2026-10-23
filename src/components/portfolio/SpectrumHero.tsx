@@ -1,6 +1,7 @@
 import {
   AnimatePresence,
   motion,
+  useMotionTemplate,
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
@@ -8,7 +9,8 @@ import {
   useTransform,
   useVelocity,
 } from "framer-motion";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { MotionStyle } from "framer-motion";
 import type { Project } from "@/data/projects";
 import { GlassText } from "@/components/ui/glass-text";
 import {
@@ -17,12 +19,16 @@ import {
   useCameraParallax,
   useTunnelStage,
 } from "@/components/ui/perspective-tunnel";
+import { Prism3D } from "./Prism3D";
 import { INTRO, PrismBeam, prismShape, type PrismGeometry } from "./PrismBeam";
 import { ProjectCard } from "./ProjectCard";
 import { SpectrumRail } from "./SpectrumRail";
 
 // Trecho inicial do scroll só com o nome; depois disso os cards entram no túnel.
 const TUNNEL_FROM = 0.06;
+// O túnel termina aqui; o resto do scroll é o encerramento (a luz apaga, o prisma sai girando).
+const TUNNEL_TO = 0.8;
+const OUTRO_FROM = 0.81;
 const CARD_SPAN = 0.3;
 // Momento (dentro da janela de cada card) em que ele é o projeto em foco.
 const PEAK = 0.6;
@@ -69,7 +75,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
     return () => observer.disconnect();
   }, []);
 
-  const windows = useMemo(() => tunnelWindows(projects.length, TUNNEL_FROM, 1, CARD_SPAN), [projects.length]);
+  const windows = useMemo(() => tunnelWindows(projects.length, TUNNEL_FROM, TUNNEL_TO, CARD_SPAN), [projects.length]);
   const peaks = useMemo(() => windows.map((w) => w.start + (w.end - w.start) * PEAK), [windows]);
   const step = peaks.length > 1 ? peaks[1] - peaks[0] : CARD_SPAN;
 
@@ -78,8 +84,10 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
 
   // Cor: começa sem croma (vidro incolor) e percorre o matiz de cada projeto no pico dele.
   const hue = useTransform(progress, peaks, projects.map((p) => p.hue));
-  const chroma = useTransform(progress, [0, TUNNEL_FROM, peaks[0]], [0, 0.03, 0.19]);
+  // Sem a luz, a cor também vai embora: o vidro volta a ser incolor no encerramento.
+  const chroma = useTransform(progress, [0, TUNNEL_FROM, peaks[0], OUTRO_FROM, OUTRO_FROM + 0.05], [0, 0.03, 0.19, 0.19, 0]);
   const focus = useTransform(progress, [TUNNEL_FROM * 0.5, peaks[0]], [0, 1]);
+  const outro = useTransform(progress, [OUTRO_FROM, 1], [0, 1]);
 
   // Quanto mais rápido o scroll, mais o vidro separa a luz nas bordas.
   const velocity = useVelocity(scrollYProgress);
@@ -91,13 +99,20 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
 
   const nameScale = useTransform(progress, [0, 1], [1, 1.06]);
   const introOpacity = useTransform(progress, [0, TUNNEL_FROM * 0.8], [1, 0]);
-  const glowOpacity = useTransform(focus, [0, 1], [0, 0.55]);
-  const scanOpacity = useTransform(focus, [0, 1], [0, 0.7]);
+  const glowOpacity = useTransform([focus, outro], ([f, o]: number[]) => f * 0.55 * Math.max(0, 1 - o * 3));
+  const scanOpacity = useTransform([focus, outro], ([f, o]: number[]) => f * 0.7 * Math.max(0, 1 - o * 3));
+  const chromeOpacity = useTransform(outro, [0, 0.4], [1, 0]);
+
+  // O nome some junto com a luz, voltando para as sombras como na abertura
+  const nameOpacity = useTransform(outro, [0.18, 0.5], [1, 0]);
+  const nameBlur = useTransform(outro, [0.18, 0.5], [0, 14]);
+  const nameBrightness = useTransform(outro, [0.18, 0.5], [1, 0]);
+  const nameFilter = useMotionTemplate`blur(${nameBlur}px) brightness(${nameBrightness})`;
 
   const [active, setActive] = useState(-1);
   useMotionValueEvent(progress, "change", (p) => {
     let next = -1;
-    if (p >= peaks[0] - step * 0.6) {
+    if (p >= peaks[0] - step * 0.6 && p < OUTRO_FROM) {
       next = peaks.reduce((best, peak, i) => (Math.abs(p - peak) < Math.abs(p - peaks[best]) ? i : best), 0);
     }
     setActive((prev) => (prev === next ? prev : next));
@@ -136,26 +151,31 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
               "radial-gradient(60% 50% at 50% 50%, oklch(0.55 var(--c) var(--h) / 0.55), transparent 70%)",
           }}
         />
-        <motion.div
-          aria-hidden
-          initial={animateIn ? { opacity: 0 } : false}
-          animate={{ opacity: 0.6 }}
-          transition={{ duration: 2, delay: INTRO.ui }}
-          className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgb(255_255_255/0.07)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(ellipse_65%_60%_at_50%_50%,#000_30%,transparent_100%)]"
-        />
+        <motion.div style={{ opacity: chromeOpacity }} className="pointer-events-none absolute inset-0">
+          <motion.div
+            aria-hidden
+            initial={animateIn ? { opacity: 0 } : false}
+            animate={{ opacity: 0.6 }}
+            transition={{ duration: 2, delay: INTRO.ui }}
+            className="absolute inset-0 [background-image:radial-gradient(rgb(255_255_255/0.07)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(ellipse_65%_60%_at_50%_50%,#000_30%,transparent_100%)]"
+          />
+        </motion.div>
 
         {geometry && (
-          <PrismBeam geometry={geometry} currentHue={hue} focus={focus} animateIn={animateIn} pulse={active} />
+          <PrismBeam geometry={geometry} currentHue={hue} focus={focus} animateIn={animateIn} pulse={active} outro={outro} />
         )}
+        {geometry && <Prism3D geometry={geometry} outro={outro} />}
 
-        <motion.p
-          initial={animateIn ? { opacity: 0, y: -6 } : false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: INTRO.ui, ease: EASE }}
-          className="pointer-events-none absolute inset-x-0 top-6 z-30 text-center font-mono text-[10px] uppercase tracking-[0.35em] text-muted sm:top-8 sm:text-xs"
-        >
-          Portfólio · Belo Horizonte
-        </motion.p>
+        <motion.div style={{ opacity: chromeOpacity }} className="pointer-events-none absolute inset-x-0 top-6 z-30 sm:top-8">
+          <motion.p
+            initial={animateIn ? { opacity: 0, y: -6 } : false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: INTRO.ui, ease: EASE }}
+            className="text-center font-mono text-[10px] uppercase tracking-[0.35em] text-muted sm:text-xs"
+          >
+            Portfólio · Belo Horizonte
+          </motion.p>
+        </motion.div>
 
         <PerspectiveTunnel
           className="pointer-events-none absolute inset-0 [&>*]:pointer-events-auto"
@@ -212,7 +232,7 @@ export function SpectrumHero({ projects }: { projects: Project[] }) {
               cyber={focus}
               pulse={active}
               className="font-display text-[clamp(2.5rem,min(9.5vw,13svh),9rem)] font-black leading-[0.88]"
-              style={{ "--mx": mx, "--my": my } as unknown as CSSProperties}
+              style={{ "--mx": mx, "--my": my, opacity: nameOpacity, filter: nameFilter } as MotionStyle}
             />
           </motion.div>
 
