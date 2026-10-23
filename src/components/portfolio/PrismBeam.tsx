@@ -52,18 +52,27 @@ function hueDistance(a: number, b: number) {
 interface BandProps {
   hue: number;
   points: string;
+  /** Linha central da faixa, que vira o "núcleo" do neon */
+  core: { x1: number; y1: number; x2: number; y2: number };
   currentHue: MotionValue<number>;
   focus: MotionValue<number>;
 }
 
-function Band({ hue, points, currentHue, focus }: BandProps) {
+function Band({ hue, points, core, currentHue, focus }: BandProps) {
   // No hero todas as faixas aparecem; com um projeto em foco, só a faixa da cor dele continua acesa.
   const opacity = useTransform([currentHue, focus], ([h, f]: number[]) => {
     const near = Math.exp(-((hueDistance(h, hue) / 38) ** 2));
     return (1 - f) * 0.9 + f * (0.08 + near * 0.92);
   });
 
-  return <motion.polygon points={points} fill={`url(#band-${hue})`} style={{ opacity }} />;
+  // Neon como o feixe branco: brilho desfocado por fora, a faixa e um núcleo fino e claro no meio
+  return (
+    <motion.g style={{ opacity }}>
+      <polygon points={points} fill={`url(#band-${hue})`} filter="url(#band-glow)" opacity={0.8} />
+      <polygon points={points} fill={`url(#band-${hue})`} />
+      <line {...core} stroke={`url(#band-core-${hue})`} strokeWidth={1.4} strokeLinecap="round" />
+    </motion.g>
+  );
 }
 
 interface PrismBeamProps {
@@ -106,7 +115,8 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse }: Pri
     const b = lerp(right, top, 0.5 - (j + 1) * bandStep);
     const exitTop = { x: W, y: a.y + (W - a.x) * (0.1 + j * bandSpread) };
     const exitBottom = { x: W, y: b.y + (W - b.x) * (0.1 + (j + 1) * bandSpread) };
-    return { hue, points: pts(a, b, exitBottom, exitTop) };
+    const core = { x1: (a.x + b.x) / 2, y1: (a.y + b.y) / 2, x2: W, y2: (exitTop.y + exitBottom.y) / 2 };
+    return { hue, points: pts(a, b, exitBottom, exitTop), core };
   });
   const exitTop = lerp(right, top, 0.5);
   const exitBottom = lerp(right, top, 0.5 - BANDS.length * bandStep);
@@ -139,8 +149,18 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse }: Pri
           <stop offset="0%" stopColor="#fff" stopOpacity="0.06" />
           <stop offset="100%" stopColor="#fff" stopOpacity="0.01" />
         </linearGradient>
+        {BANDS.map((hue) => (
+          <linearGradient key={hue} id={`band-core-${hue}`} x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor={`oklch(0.97 0.08 ${hue})`} stopOpacity="1" />
+            <stop offset="60%" stopColor={`oklch(0.92 0.12 ${hue})`} stopOpacity="0.55" />
+            <stop offset="100%" stopColor={`oklch(0.9 0.12 ${hue})`} stopOpacity="0" />
+          </linearGradient>
+        ))}
         <filter id="soft-glow" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="4" />
+        </filter>
+        <filter id="band-glow" x="-10%" y="-60%" width="120%" height="220%">
+          <feGaussianBlur stdDeviation="7" />
         </filter>
         <clipPath id="beam-reveal">
           <motion.rect
@@ -223,7 +243,7 @@ export function PrismBeam({ geometry, currentHue, focus, animateIn, pulse }: Pri
       {/* Espectro saindo pela face direita */}
       <g clipPath="url(#fan-reveal)">
         {bands.map((band) => (
-          <Band key={band.hue} hue={band.hue} points={band.points} currentHue={currentHue} focus={focus} />
+          <Band key={band.hue} hue={band.hue} points={band.points} core={band.core} currentHue={currentHue} focus={focus} />
         ))}
       </g>
     </svg>
